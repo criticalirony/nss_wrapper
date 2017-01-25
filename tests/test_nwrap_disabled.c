@@ -84,7 +84,11 @@ static void test_nwrap_getaddrinfo_local(void **state)
 	assert_int_equal(res->ai_family, AF_INET);
 	assert_int_equal(res->ai_socktype, SOCK_STREAM);
 
+#ifdef HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES
+	assert_string_equal(res->ai_canonname, "127.0.0.1");
+#else /* HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES */
 	assert_null(res->ai_canonname);
+#endif /* HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES */
 
 	sinp = (struct sockaddr_in *)res->ai_addr;
 

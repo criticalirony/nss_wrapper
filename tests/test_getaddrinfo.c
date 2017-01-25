@@ -207,7 +207,11 @@ static void test_nwrap_getaddrinfo_any(void **state)
 	assert_int_equal(res->ai_family, AF_INET);
 	assert_int_equal(res->ai_socktype, SOCK_STREAM);
 
+#ifdef HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES
+	assert_string_equal(res->ai_canonname, "0.0.0.0");
+#else /* HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES */
 	assert_null(res->ai_canonname);
+#endif /* HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES */
 
 	sinp = (struct sockaddr_in *)res->ai_addr;
 
@@ -233,7 +237,11 @@ static void test_nwrap_getaddrinfo_any(void **state)
 	assert_int_equal(res->ai_family, AF_INET6);
 	assert_int_equal(res->ai_socktype, SOCK_STREAM);
 
+#ifdef HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES
+	assert_string_equal(res->ai_canonname, "::");
+#else /* HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES */
 	assert_null(res->ai_canonname);
+#endif /* HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES */
 
 	sin6p = (struct sockaddr_in6 *)res->ai_addr;
 
@@ -268,7 +276,11 @@ static void test_nwrap_getaddrinfo_local(void **state)
 	assert_int_equal(res->ai_family, AF_INET);
 	assert_int_equal(res->ai_socktype, SOCK_STREAM);
 
+#ifdef HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES
+	assert_string_equal(res->ai_canonname, "127.0.0.1");
+#else /* HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES */
 	assert_null(res->ai_canonname);
+#endif /* HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES */
 
 	sinp = (struct sockaddr_in *)res->ai_addr;
 	ip = inet_ntoa(sinp->sin_addr);

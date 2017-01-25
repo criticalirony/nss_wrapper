@@ -270,3 +270,32 @@ if (NOT WIN32)
 endif (NOT WIN32)
 
 set(NWRAP_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} CACHE INTERNAL "nss_wrapper required system libraries")
+
+# check whether getaddrinfo() returns "node" in "ai_canonname" for IP-addresses
+check_c_source_runs("#include <stddef.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+int main(void) {
+    struct addrinfo hints;
+    struct addrinfo *res = NULL;
+
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV;
+
+    if (getaddrinfo(\"0.0.0.0\", \"389\", &hints, &res) != 0) {
+        return 2;
+    }
+
+    if (res == NULL) {
+        return 3;
+    }
+
+    return strncmp(res->ai_canonname, \"0.0.0.0\", sizeof(\"0.0.0.0\")) != 0;
+}" HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES)
+if (HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES)
+    add_definitions(-DHAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES)
+endif (HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES)
