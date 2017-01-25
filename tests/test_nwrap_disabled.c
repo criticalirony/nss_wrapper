@@ -38,6 +38,7 @@ static void test_nwrap_passwd_group(void **state)
 /* Test libnsl */
 static void test_nwrap_hostent(void **state)
 {
+#ifdef HAVE_NONNULL_GETHOSTENT
 	struct hostent *he;
 
 	(void) state; /* unused */
@@ -48,6 +49,13 @@ static void test_nwrap_hostent(void **state)
 	assert_non_null(he);
 
 	endhostent();
+#else
+	(void) state; /* unused */
+
+	sethostent(0);
+	gethostent();
+	endhostent();
+#endif
 }
 
 static void test_nwrap_gethostname(void **state)

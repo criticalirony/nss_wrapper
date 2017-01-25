@@ -6,6 +6,7 @@ include(CheckTypeSize)
 include(CheckStructHasMember)
 include(CheckPrototypeDefinition)
 include(TestBigEndian)
+include(CheckCSourceRuns)
 
 set(PACKAGE ${APPLICATION_NAME})
 set(VERSION ${APPLICATION_VERSION})
@@ -324,3 +325,17 @@ int main(void) {
 if (HAVE_GETADDRINFO_USES_EAI_SERVICE)
     add_definitions(-DHAVE_GETADDRINFO_USES_EAI_SERVICE)
 endif (HAVE_GETADDRINFO_USES_EAI_SERVICE)
+
+# check for non-NULL gethostent()
+check_c_source_runs("#include <stddef.h>
+#include <netdb.h>
+int main(void) {
+    struct hostent *hostent = NULL;
+    sethostent(0);
+    hostent = gethostent();
+    endhostent();
+    return hostent == NULL;
+}" HAVE_NONNULL_GETHOSTENT)
+if (HAVE_NONNULL_GETHOSTENT)
+    add_definitions(-DHAVE_NONNULL_GETHOSTENT)
+endif (HAVE_NONNULL_GETHOSTENT)
