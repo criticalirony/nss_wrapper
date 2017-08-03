@@ -593,7 +593,11 @@ static void test_nwrap_getaddrinfo_flags_ai_numericserv(void **state)
 	 */
 
 	rc = getaddrinfo(NULL, "echo", &hints, &res);
+#ifdef HAVE_GETADDRINFO_USES_EAI_SERVICE
+	assert_int_equal(rc, EAI_SERVICE);
+#else /* HAVE_GETADDRINFO_USES_EAI_SERVICE */
 	assert_int_equal(rc, EAI_NONAME);
+#endif /* HAVE_GETADDRINFO_USES_EAI_SERVICE */
 
 	rc = getaddrinfo(NULL, "80", &hints, &res);
 	assert_int_equal(rc, 0);
@@ -602,7 +606,11 @@ static void test_nwrap_getaddrinfo_flags_ai_numericserv(void **state)
 
 	/* Crippled input */
 	rc = getaddrinfo(NULL, "80a1", &hints, &res);
+#ifdef HAVE_GETADDRINFO_USES_EAI_SERVICE
+	assert_int_equal(rc, EAI_SERVICE);
+#else /* HAVE_GETADDRINFO_USES_EAI_SERVICE */
 	assert_int_equal(rc, EAI_NONAME);
+#endif /* HAVE_GETADDRINFO_USES_EAI_SERVICE */
 
 	/*
 	 * Calls with non-NULL name are handled by nwrap

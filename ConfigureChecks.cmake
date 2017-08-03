@@ -299,3 +299,28 @@ int main(void) {
 if (HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES)
     add_definitions(-DHAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES)
 endif (HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES)
+
+# check whether getaddrinfo() returns EAI_SERVICE when the requested service is not available for the requested socket type.
+check_c_source_runs("#include <stddef.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+int main(void) {
+    struct addrinfo hints;
+    struct addrinfo *res = NULL;
+    int rc;
+
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
+    hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
+    hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;    /* For wildcard IP address */
+    hints.ai_protocol = 0;          /* Any protocol */
+    hints.ai_canonname = NULL;
+
+    rc = getaddrinfo(NULL, \"echo\", &hints, &res);
+    return rc != EAI_SERVICE;
+}" HAVE_GETADDRINFO_USES_EAI_SERVICE)
+if (HAVE_GETADDRINFO_USES_EAI_SERVICE)
+    add_definitions(-DHAVE_GETADDRINFO_USES_EAI_SERVICE)
+endif (HAVE_GETADDRINFO_USES_EAI_SERVICE)
