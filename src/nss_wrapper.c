@@ -2633,7 +2633,9 @@ static bool nwrap_ed_inventarize_add_new(char *const h_name,
 
 	p = hsearch(e, ENTER);
 	if (p == NULL) {
-		NWRAP_LOG(NWRAP_LOG_ERROR, "Hash table is full!");
+		NWRAP_LOG(NWRAP_LOG_ERROR,
+			  "Hash table is full (%s)!",
+			  strerror(errno));
 		return false;
 	}
 
