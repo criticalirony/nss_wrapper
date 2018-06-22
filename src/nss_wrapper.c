@@ -1,8 +1,11 @@
 /*
- * Copyright (C) Stefan Metzmacher 2007 <metze@samba.org>
- * Copyright (C) Guenther Deschner 2009 <gd@samba.org>
- * Copyright (C) Andreas Schneider 2013 <asn@samba.org>
+ * BSD 3-Clause License
  *
+ * Copyright (c) 2007,      Stefan Metzmacher <metze@samba.org>
+ * Copyright (c) 2009,      Guenther Deschner <gd@samba.org>
+ * Copyright (c) 2014-2015, Michael Adam <obnox@samba.org>
+ * Copyright (c) 2015,      Robin Hack <hack.robin@gmail.com>
+ * Copyright (c) 2013-2018, Andreas Schneider <asn@samba.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
