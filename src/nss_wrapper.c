@@ -3902,7 +3902,7 @@ static int nwrap_module_getpwuid_r(struct nwrap_backend *b,
 {
 	int ret;
 
-	(void) pwdstp; /* unused */
+	*pwdstp = NULL;
 
 	if (!b->fns->_nss_getpwuid_r) {
 		return ENOENT;
@@ -3911,6 +3911,7 @@ static int nwrap_module_getpwuid_r(struct nwrap_backend *b,
 	ret = b->fns->_nss_getpwuid_r(uid, pwdst, buf, buflen, &errno);
 	switch (ret) {
 	case NSS_STATUS_SUCCESS:
+		*pwdstp = pwdst;
 		return 0;
 	case NSS_STATUS_NOTFOUND:
 		if (errno != 0) {
