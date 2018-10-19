@@ -3846,9 +3846,7 @@ static int nwrap_module_getpwnam_r(struct nwrap_backend *b,
 {
 	int ret;
 
-	(void) b; /* unused */
-	(void) pwdst; /* unused */
-	(void) pwdstp; /* unused */
+	*pwdstp = NULL;
 
 	if (!b->fns->_nss_getpwnam_r) {
 		return NSS_STATUS_NOTFOUND;
@@ -3857,6 +3855,7 @@ static int nwrap_module_getpwnam_r(struct nwrap_backend *b,
 	ret = b->fns->_nss_getpwnam_r(name, pwdst, buf, buflen, &errno);
 	switch (ret) {
 	case NSS_STATUS_SUCCESS:
+		*pwdstp = pwdst;
 		return 0;
 	case NSS_STATUS_NOTFOUND:
 		if (errno != 0) {
