@@ -4132,7 +4132,7 @@ static int nwrap_module_getgrgid_r(struct nwrap_backend *b,
 {
 	int ret;
 
-	(void) grdstp; /* unused */
+	*grdstp = NULL;
 
 	if (!b->fns->_nss_getgrgid_r) {
 		return ENOENT;
@@ -4141,6 +4141,7 @@ static int nwrap_module_getgrgid_r(struct nwrap_backend *b,
 	ret = b->fns->_nss_getgrgid_r(gid, grdst, buf, buflen, &errno);
 	switch (ret) {
 	case NSS_STATUS_SUCCESS:
+		*grdstp = grdst;
 		return 0;
 	case NSS_STATUS_NOTFOUND:
 		if (errno != 0) {
