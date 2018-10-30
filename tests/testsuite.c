@@ -166,6 +166,7 @@ static void test_nwrap_getpwnam_r(const char *name,
 		}
 		assert_true(ret);
 	}
+	assert_ptr_equal(&pwd, pwdp);
 
 	print_passwd(&pwd);
 
@@ -214,6 +215,7 @@ static bool test_nwrap_getpwuid_r(uid_t uid,
 		}
 		assert_true(ret);
 	}
+	assert_ptr_equal(&pwd, pwdp);
 
 	print_passwd(&pwd);
 
@@ -334,6 +336,7 @@ static bool test_nwrap_getgrnam_r(const char *name,
 		}
 		assert_true(ret);
 	}
+	assert_ptr_equal(&grp, grpp);
 
 	print_group(&grp);
 
@@ -384,6 +387,7 @@ static bool test_nwrap_getgrgid_r(gid_t gid,
 		}
 		assert_true(ret);
 	}
+	assert_ptr_equal(&grp, grpp);
 
 	print_group(&grp);
 
