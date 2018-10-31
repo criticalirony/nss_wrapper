@@ -218,8 +218,11 @@ static pthread_mutex_t nwrap_sp_global_mutex = PTHREAD_MUTEX_INITIALIZER;
 	NWRAP_UNLOCK(nwrap_initialized); \
 } while (0);
 
+static void nwrap_init(void);
+
 static void nwrap_thread_prepare(void)
 {
+	nwrap_init();
 	NWRAP_LOCK_ALL;
 }
 
@@ -806,7 +809,6 @@ static struct nwrap_he nwrap_he_global;
  * NWRAP PROTOTYPES
  *********************************************************/
 
-static void nwrap_init(void);
 static bool nwrap_gr_parse_line(struct nwrap_cache *nwrap, char *line);
 static void nwrap_gr_unload(struct nwrap_cache *nwrap);
 void nwrap_constructor(void) CONSTRUCTOR_ATTRIBUTE;
@@ -5574,11 +5576,7 @@ void nwrap_constructor(void)
 		       &nwrap_thread_parent,
 		       &nwrap_thread_child);
 
-	/*
-	 * Here is safe place to call nwrap_init() and initialize data
-	 * for the main process.
-	 */
-	nwrap_init();
+	/* Do not call nwrap_init() here. */
 }
 
 /****************************
