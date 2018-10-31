@@ -1512,19 +1512,17 @@ static bool nwrap_module_init(const char *name,
 
 static void nwrap_libc_init(struct nwrap_main *r)
 {
-	r->libc = malloc(sizeof(struct nwrap_libc));
+	r->libc = calloc(1, sizeof(struct nwrap_libc));
 	if (r->libc == NULL) {
 		printf("Failed to allocate memory for libc");
 		exit(-1);
 	}
-	ZERO_STRUCTP(r->libc);
 
-	r->libc->fns = malloc(sizeof(struct nwrap_libc_fns));
+	r->libc->fns = calloc(1, sizeof(struct nwrap_libc_fns));
 	if (r->libc->fns == NULL) {
 		printf("Failed to allocate memory for libc functions");
 		exit(-1);
 	}
-	ZERO_STRUCTP(r->libc->fns);
 }
 
 static void nwrap_backend_init(struct nwrap_main *r)
