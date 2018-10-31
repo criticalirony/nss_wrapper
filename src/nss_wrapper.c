@@ -1563,6 +1563,7 @@ static void nwrap_init(void)
 	const char *env;
 	char *endptr;
 	size_t max_hostents_tmp;
+	int ok;
 
 	NWRAP_LOCK(nwrap_initialized);
 	if (nwrap_initialized) {
@@ -1602,10 +1603,11 @@ static void nwrap_init(void)
 	NWRAP_LOG(NWRAP_LOG_DEBUG,
 		  "Initializing hash table of size %lu items.",
 		  (unsigned long)max_hostents);
-	if (hcreate(max_hostents) == 0) {
+	ok = hcreate(max_hostents);
+	if (!ok) {
 		NWRAP_LOG(NWRAP_LOG_ERROR,
 			  "Failed to initialize hash table");
-		goto done;
+		exit(-1);
 	}
 
 	nwrap_main_global = &__nwrap_main_global;
@@ -1656,7 +1658,6 @@ static void nwrap_init(void)
 	nwrap_he_global.cache->parse_line = nwrap_he_parse_line;
 	nwrap_he_global.cache->unload = nwrap_he_unload;
 
-done:
 	/* We hold all locks here so we can use NWRAP_UNLOCK_ALL. */
 	NWRAP_UNLOCK_ALL;
 }
