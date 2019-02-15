@@ -259,11 +259,15 @@ int main(void) {
     return 0;
 }" HAVE_DESTRUCTOR_ATTRIBUTE)
 
-check_library_exists(dl dlopen "" HAVE_LIBDL)
-if (HAVE_LIBDL)
-    find_library(DLFCN_LIBRARY dl)
+find_library(DLFCN_LIBRARY dl)
+if (DLFCN_LIBRARY)
     list(APPEND _REQUIRED_LIBRARIES ${DLFCN_LIBRARY})
-endif (HAVE_LIBDL)
+else()
+    check_function_exists(dlopen HAVE_DLOPEN)
+    if (NOT HAVE_DLOPEN)
+        message(FATAL_ERROR "FATAL: No dlopen() function detected")
+    endif()
+endif()
 
 # ENDIAN
 if (NOT WIN32)
