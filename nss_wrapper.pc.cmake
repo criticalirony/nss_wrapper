@@ -1,4 +1,4 @@
-Name: @APPLICATION_NAME@
+Name: @PROJECT_NAME@
 Description: The nss_wrapper library
-Version: @APPLICATION_VERSION@
+Version: @PROJECT_VERSION@
 Libs: @LIB_INSTALL_DIR@/@NSS_WRAPPER_LIB@
