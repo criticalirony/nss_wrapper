@@ -1,11 +1,5 @@
 project(tests C)
 
-include_directories(
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMOCKA_INCLUDE_DIR}
-)
-
 set(TESTSUITE_LIBRARIES ${NWRAP_REQUIRED_LIBRARIES} ${CMOCKA_LIBRARY})
 
 add_library(nss_nwrap SHARED nss_nwrap.c)
@@ -83,6 +77,10 @@ foreach(_NWRAP_TEST ${NWRAP_TESTS})
                                PRIVATE
                                    -DBSD)
     endif()
+    target_include_directories(${_NWRAP_TEST}
+                               PRIVATE
+                                   ${CMAKE_BINARY_DIR}
+                                   ${CMOCKA_INCLUDE_DIR})
     add_cmocka_test_environment(${_NWRAP_TEST})
 endforeach()
 
@@ -100,6 +98,10 @@ add_cmocka_test(test_nwrap_disabled
                 COMPILE_OPTIONS ${DEFAULT_C_COMPILE_FLAGS}
                 LINK_LIBRARIES ${TESTSUITE_LIBRARIES}
                 LINK_OPTIONS ${DEFAULT_LINK_FLAGS})
+target_include_directories(test_nwrap_disabled
+                           PRIVATE
+                               ${CMAKE_BINARY_DIR}
+                               ${CMOCKA_INCLUDE_DIR})
 set_property(
     TEST
         test_nwrap_disabled
