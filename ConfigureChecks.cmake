@@ -90,13 +90,13 @@ if (UNIX)
         # libsocket (Solaris)
         check_library_exists(socket getaddrinfo "" HAVE_LIBSOCKET)
         if (HAVE_LIBSOCKET)
-          set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} socket)
+            list(APPEND _REQUIRED_LIBRARIES socket)
         endif (HAVE_LIBSOCKET)
 
         # libnsl/inet_pton (Solaris)
         check_library_exists(nsl inet_pton "" HAVE_LIBNSL)
         if (HAVE_LIBNSL)
-            set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} nsl)
+            list(APPEND _REQUIRED_LIBRARIES nsl)
         endif (HAVE_LIBNSL)
     endif (NOT LINUX)
 
@@ -262,15 +262,13 @@ int main(void) {
 check_library_exists(dl dlopen "" HAVE_LIBDL)
 if (HAVE_LIBDL)
     find_library(DLFCN_LIBRARY dl)
-    set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${DLFCN_LIBRARY})
+    list(APPEND _REQUIRED_LIBRARIES ${DLFCN_LIBRARY})
 endif (HAVE_LIBDL)
 
 # ENDIAN
 if (NOT WIN32)
     test_big_endian(WORDS_BIGENDIAN)
 endif (NOT WIN32)
-
-set(NWRAP_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} CACHE INTERNAL "nss_wrapper required system libraries")
 
 # check whether getaddrinfo() returns "node" in "ai_canonname" for IP-addresses
 check_c_source_runs("#include <stddef.h>
@@ -339,3 +337,5 @@ int main(void) {
 if (HAVE_NONNULL_GETHOSTENT)
     add_definitions(-DHAVE_NONNULL_GETHOSTENT)
 endif (HAVE_NONNULL_GETHOSTENT)
+
+set(NWRAP_REQUIRED_LIBRARIES ${_REQUIRED_LIBRARIES} CACHE INTERNAL "nss_wrapper required system libraries")
