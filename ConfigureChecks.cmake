@@ -299,9 +299,6 @@ int main(void) {
 
     return strncmp(res->ai_canonname, \"0.0.0.0\", sizeof(\"0.0.0.0\")) != 0;
 }" HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES)
-if (HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES)
-    add_definitions(-DHAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES)
-endif (HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES)
 
 # check whether getaddrinfo() returns EAI_SERVICE when the requested service is not available for the requested socket type.
 check_c_source_runs("#include <stddef.h>
@@ -324,9 +321,6 @@ int main(void) {
     rc = getaddrinfo(NULL, \"echo\", &hints, &res);
     return rc != EAI_SERVICE;
 }" HAVE_GETADDRINFO_USES_EAI_SERVICE)
-if (HAVE_GETADDRINFO_USES_EAI_SERVICE)
-    add_definitions(-DHAVE_GETADDRINFO_USES_EAI_SERVICE)
-endif (HAVE_GETADDRINFO_USES_EAI_SERVICE)
 
 # check for non-NULL gethostent()
 check_c_source_runs("#include <stddef.h>
@@ -338,8 +332,5 @@ int main(void) {
     endhostent();
     return hostent == NULL;
 }" HAVE_NONNULL_GETHOSTENT)
-if (HAVE_NONNULL_GETHOSTENT)
-    add_definitions(-DHAVE_NONNULL_GETHOSTENT)
-endif (HAVE_NONNULL_GETHOSTENT)
 
 set(NWRAP_REQUIRED_LIBRARIES ${_REQUIRED_LIBRARIES} CACHE INTERNAL "nss_wrapper required system libraries")
