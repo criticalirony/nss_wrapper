@@ -2550,55 +2550,84 @@ static void nwrap_gr_unload(struct nwrap_cache *nwrap)
 static int nwrap_gr_copy_r(const struct group *src, struct group *dst,
 			   char *buf, size_t buflen, struct group **dstp)
 {
-	char *first;
-	char **lastm;
-	char *last = NULL;
-	off_t ofsb;
-	off_t ofsm;
-	off_t ofs;
+	char *p = NULL;
+	uintptr_t align = 0;
+	unsigned int gr_mem_cnt = 0;
 	unsigned i;
+	size_t total_len;
+	size_t gr_name_len = strlen(src->gr_name) + 1;
+	size_t gr_passwd_len = strlen(src->gr_passwd) + 1;
 	union {
 		char *ptr;
 		char **data;
-	} g;
+	} g_mem;
 
-	first = src->gr_name;
-
-	lastm = src->gr_mem;
-	while (*lastm) {
-		last = *lastm;
-		lastm++;
+	for (i = 0; src->gr_mem[i] != NULL; i++) {
+		gr_mem_cnt++;
 	}
 
-	if (last == NULL) {
-		last = src->gr_passwd;
+	/* Align the memory for storing pointers */
+	align = __alignof__(char *) - ((p - (char *)0) % __alignof__(char *));
+	total_len = align +
+		    (1 + gr_mem_cnt) * sizeof(char *) +
+		    gr_name_len + gr_passwd_len;
+
+	if (total_len > buflen) {
+		errno = ERANGE;
+		return -1;
 	}
-	while (*last) last++;
+	buflen -= total_len;
 
-	ofsb = PTR_DIFF(last + 1, first);
-	ofsm = PTR_DIFF(lastm + 1, src->gr_mem);
+	/* gr_mem */
+	p = buf + align;
+	g_mem.ptr = p;
+	dst->gr_mem = g_mem.data;
 
-	if ((ofsb + ofsm) > (off_t) buflen) {
-		return ERANGE;
-	}
+	/* gr_name */
+	p += (1 + gr_mem_cnt) * sizeof(char *);
+	dst->gr_name = p;
 
-	memcpy(buf, first, ofsb);
-	memcpy(buf + ofsb, src->gr_mem, ofsm);
+	/* gr_passwd */
+	p += gr_name_len;
+	dst->gr_passwd = p;
 
-	ofs = PTR_DIFF(src->gr_name, first);
-	dst->gr_name = buf + ofs;
-	ofs = PTR_DIFF(src->gr_passwd, first);
-	dst->gr_passwd = buf + ofs;
+	/* gr_mem[x] */
+	p += gr_passwd_len;
+
+	/* gr_gid */
 	dst->gr_gid = src->gr_gid;
 
-	g.ptr = (buf + ofsb);
-	dst->gr_mem = g.data;
-	for (i=0; src->gr_mem[i]; i++) {
-		ofs = PTR_DIFF(src->gr_mem[i], first);
-		dst->gr_mem[i] = buf + ofs;
+	memcpy(dst->gr_name, src->gr_name, gr_name_len);
+
+	memcpy(dst->gr_passwd, src->gr_passwd, gr_passwd_len);
+
+	/* Set the terminating entry */
+	dst->gr_mem[gr_mem_cnt] = NULL;
+
+	/* Now add the group members content */
+	total_len = 0;
+	for (i = 0; i < gr_mem_cnt; i++) {
+		size_t len = strlen(src->gr_mem[i]) + 1;
+
+		dst->gr_mem[i] = p;
+		total_len += len;
+		p += len;
 	}
 
-	if (dstp) {
+	if (total_len > buflen) {
+		errno = ERANGE;
+		return -1;
+	}
+
+	for (i = 0; i < gr_mem_cnt; i++) {
+		size_t len = strlen(src->gr_mem[i]) + 1;
+
+		memcpy(dst->gr_mem[i],
+		       src->gr_mem[i],
+		       len);
+	}
+
+	if (dstp != NULL) {
 		*dstp = dst;
 	}
 
