@@ -274,63 +274,68 @@ if (NOT WIN32)
     test_big_endian(WORDS_BIGENDIAN)
 endif (NOT WIN32)
 
-# check whether getaddrinfo() returns "node" in "ai_canonname" for IP-addresses
-check_c_source_runs("#include <stddef.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-int main(void) {
-    struct addrinfo hints;
-    struct addrinfo *res = NULL;
+if (NOT CMAKE_CROSSCOMPILING)
+    # check whether getaddrinfo() returns "node" in "ai_canonname" for IP-addresses
+    check_c_source_runs("#include <stddef.h>
+    #include <string.h>
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netdb.h>
 
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV;
+    int main(void) {
+        struct addrinfo hints;
+        struct addrinfo *res = NULL;
 
-    if (getaddrinfo(\"0.0.0.0\", \"389\", &hints, &res) != 0) {
-        return 2;
-    }
+        memset(&hints, 0, sizeof(struct addrinfo));
+        hints.ai_family = AF_INET;
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV;
 
-    if (res == NULL) {
-        return 3;
-    }
+        if (getaddrinfo(\"0.0.0.0\", \"389\", &hints, &res) != 0) {
+            return 2;
+        }
 
-    return strncmp(res->ai_canonname, \"0.0.0.0\", sizeof(\"0.0.0.0\")) != 0;
-}" HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES)
+        if (res == NULL) {
+            return 3;
+        }
 
-# check whether getaddrinfo() returns EAI_SERVICE when the requested service is not available for the requested socket type.
-check_c_source_runs("#include <stddef.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-int main(void) {
-    struct addrinfo hints;
-    struct addrinfo *res = NULL;
-    int rc;
+        return strncmp(res->ai_canonname, \"0.0.0.0\", sizeof(\"0.0.0.0\")) != 0;
+    }" HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES)
 
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
-    hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
-    hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;    /* For wildcard IP address */
-    hints.ai_protocol = 0;          /* Any protocol */
-    hints.ai_canonname = NULL;
+    # Check whether getaddrinfo() returns EAI_SERVICE when the requested
+    # service is not available for the requested socket type.
+    check_c_source_runs("#include <stddef.h>
+    #include <string.h>
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netdb.h>
 
-    rc = getaddrinfo(NULL, \"echo\", &hints, &res);
-    return rc != EAI_SERVICE;
-}" HAVE_GETADDRINFO_USES_EAI_SERVICE)
+    int main(void) {
+        struct addrinfo hints;
+        struct addrinfo *res = NULL;
+        int rc;
 
-# check for non-NULL gethostent()
-check_c_source_runs("#include <stddef.h>
-#include <netdb.h>
-int main(void) {
-    struct hostent *hostent = NULL;
-    sethostent(0);
-    hostent = gethostent();
-    endhostent();
-    return hostent == NULL;
-}" HAVE_NONNULL_GETHOSTENT)
+        memset(&hints, 0, sizeof(struct addrinfo));
+        hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
+        hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
+        hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;    /* For wildcard IP address */
+        hints.ai_protocol = 0;          /* Any protocol */
+        hints.ai_canonname = NULL;
+
+        rc = getaddrinfo(NULL, \"echo\", &hints, &res);
+        return rc != EAI_SERVICE;
+    }" HAVE_GETADDRINFO_USES_EAI_SERVICE)
+
+    # Check for non-NULL gethostent()
+    check_c_source_runs("#include <stddef.h>
+    #include <netdb.h>
+    int main(void) {
+        struct hostent *hostent = NULL;
+        sethostent(0);
+        hostent = gethostent();
+        endhostent();
+        return hostent == NULL;
+    }" HAVE_NONNULL_GETHOSTENT)
+endif (NOT CMAKE_CROSSCOMPILING)
 
 set(NWRAP_REQUIRED_LIBRARIES ${_REQUIRED_LIBRARIES} CACHE INTERNAL "nss_wrapper required system libraries")
