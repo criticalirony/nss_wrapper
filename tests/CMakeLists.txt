@@ -7,6 +7,10 @@ add_library(nss_nwrap SHARED nss_nwrap.c)
 target_compile_options(nss_nwrap
                        PRIVATE
                           ${DEFAULT_C_COMPILE_FLAGS})
+target_include_directories(nss_nwrap
+                           PRIVATE
+                               ${CMAKE_BINARY_DIR}
+                               ${CMOCKA_INCLUDE_DIR})
 
 set(HOMEDIR ${CMAKE_CURRENT_BINARY_DIR})
 
