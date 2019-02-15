@@ -75,7 +75,10 @@ static void test_nwrap_getaddrinfo_local(void **state)
 {
 	struct addrinfo hints;
 	struct addrinfo *res;
-	struct sockaddr_in *sinp;
+	union {
+		struct sockaddr *sa;
+		struct sockaddr_in *in;
+	} addr;
 	int rc;
 
 	(void) state; /* unused */
@@ -98,9 +101,9 @@ static void test_nwrap_getaddrinfo_local(void **state)
 	assert_null(res->ai_canonname);
 #endif /* HAVE_GETADDRINFO_SETS_CANONNAME_FOR_IPADDRESSES */
 
-	sinp = (struct sockaddr_in *)res->ai_addr;
+	addr.sa = res->ai_addr;
 
-	assert_int_equal(ntohl(sinp->sin_addr.s_addr), INADDR_LOOPBACK);
+	assert_int_equal(ntohl(addr.in->sin_addr.s_addr), INADDR_LOOPBACK);
 
 	freeaddrinfo(res);
 }
