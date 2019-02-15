@@ -73,10 +73,11 @@ function(ADD_CMOCKA_TEST_ENVIRONMENT _TEST_NAME)
                     ENVIRONMENT "${TORTURE_ENVIRONMENT}")
 endfunction()
 foreach(_NWRAP_TEST ${NWRAP_TESTS})
-    add_cmocka_test(${_NWRAP_TEST} ${_NWRAP_TEST}.c ${TESTSUITE_LIBRARIES})
-    target_compile_options(${_NWRAP_TEST}
-                           PRIVATE
-                              ${DEFAULT_C_COMPILE_FLAGS})
+    add_cmocka_test(${_NWRAP_TEST}
+                    SOURCES ${_NWRAP_TEST}.c
+                    COMPILE_OPTIONS ${DEFAULT_C_COMPILE_FLAGS}
+                    LINK_LIBRARIES ${TESTSUITE_LIBRARIES}
+                    LINK_OPTIONS ${DEFAULT_LINK_FLAGS})
     if (BSD)
         target_compile_options(${_NWRAP_TEST}
                                PRIVATE
@@ -87,17 +88,18 @@ endforeach()
 
 if (HAVE_SHADOW_H)
     # This is needed to check the hash in tests/shadow.in
-    target_link_libraries(test_shadow crypt)
+    target_link_libraries(test_shadow PRIVATE crypt)
 endif (HAVE_SHADOW_H)
 
-target_link_libraries(test_nwrap_vector ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(test_gethostby_name_addr ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(test_nwrap_vector PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(test_gethostby_name_addr PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
 # Test nwrap without wrapping so the libc functions are called
-add_cmocka_test(test_nwrap_disabled test_nwrap_disabled.c ${TESTSUITE_LIBRARIES})
-target_compile_options(test_nwrap_disabled
-                       PRIVATE
-                          ${DEFAULT_C_COMPILE_FLAGS})
+add_cmocka_test(test_nwrap_disabled
+                SOURCES test_nwrap_disabled.c
+                COMPILE_OPTIONS ${DEFAULT_C_COMPILE_FLAGS}
+                LINK_LIBRARIES ${TESTSUITE_LIBRARIES}
+                LINK_OPTIONS ${DEFAULT_LINK_FLAGS})
 set_property(
     TEST
         test_nwrap_disabled
