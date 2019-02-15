@@ -1,6 +1,7 @@
 project(tests C)
 
 set(TESTSUITE_LIBRARIES ${NWRAP_REQUIRED_LIBRARIES} ${CMOCKA_LIBRARY})
+string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_LOWER)
 
 add_library(nss_nwrap SHARED nss_nwrap.c)
 target_compile_options(nss_nwrap
@@ -93,17 +94,19 @@ target_link_libraries(test_nwrap_vector PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(test_gethostby_name_addr PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
 # Test nwrap without wrapping so the libc functions are called
-add_cmocka_test(test_nwrap_disabled
-                SOURCES test_nwrap_disabled.c
-                COMPILE_OPTIONS ${DEFAULT_C_COMPILE_FLAGS}
-                LINK_LIBRARIES ${TESTSUITE_LIBRARIES}
-                LINK_OPTIONS ${DEFAULT_LINK_FLAGS})
-target_include_directories(test_nwrap_disabled
-                           PRIVATE
-                               ${CMAKE_BINARY_DIR}
-                               ${CMOCKA_INCLUDE_DIR})
-set_property(
-    TEST
-        test_nwrap_disabled
-    PROPERTY
-        ENVIRONMENT LD_PRELOAD=${NSS_WRAPPER_LOCATION})
+if (NOT CMAKE_BUILD_TYPE_LOWER MATCHES "sanitizer")
+    add_cmocka_test(test_nwrap_disabled
+                    SOURCES test_nwrap_disabled.c
+                    COMPILE_OPTIONS ${DEFAULT_C_COMPILE_FLAGS}
+                    LINK_LIBRARIES ${TESTSUITE_LIBRARIES}
+                    LINK_OPTIONS ${DEFAULT_LINK_FLAGS})
+    target_include_directories(test_nwrap_disabled
+                               PRIVATE
+                                   ${CMAKE_BINARY_DIR}
+                                   ${CMOCKA_INCLUDE_DIR})
+    set_property(
+        TEST
+            test_nwrap_disabled
+        PROPERTY
+            ENVIRONMENT LD_PRELOAD=${NSS_WRAPPER_LOCATION})
+endif()
