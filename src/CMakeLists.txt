@@ -2,11 +2,15 @@ project(libnss_wrapper C)
 
 include_directories(${CMAKE_BINARY_DIR})
 add_library(nss_wrapper SHARED nss_wrapper.c)
-target_link_libraries(nss_wrapper ${NWRAP_REQUIRED_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-
+target_compile_options(nss_wrapper
+                       PRIVATE
+                          ${DEFAULT_C_COMPILE_FLAGS})
 if (BSD)
-    add_definitions(-DBSD)
-endif (BSD)
+    target_compile_options(nss_wrapper
+                           PRIVATE
+                           -DBSD)
+endif()
+target_link_libraries(nss_wrapper ${NWRAP_REQUIRED_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 set_target_properties(
   nss_wrapper
