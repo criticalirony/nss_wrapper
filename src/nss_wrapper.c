@@ -2091,6 +2091,19 @@ static int nwrap_pw_copy_r(const struct passwd *src, struct passwd *dst,
 	dst->pw_passwd = buf + ofs;
 	dst->pw_uid = src->pw_uid;
 	dst->pw_gid = src->pw_gid;
+#ifdef HAVE_STRUCT_PASSWD_PW_CLASS
+	ofs = PTR_DIFF(src->pw_class, first);
+	dst->pw_class = buf + ofs;
+#endif /* HAVE_STRUCT_PASSWD_PW_CLASS */
+
+#ifdef HAVE_STRUCT_PASSWD_PW_CHANGE
+	dst->pw_change = 0;
+#endif /* HAVE_STRUCT_PASSWD_PW_CHANGE */
+
+#ifdef HAVE_STRUCT_PASSWD_PW_EXPIRE
+	dst->pw_expire = 0;
+#endif /* HAVE_STRUCT_PASSWD_PW_EXPIRE */
+
 	ofs = PTR_DIFF(src->pw_gecos, first);
 	dst->pw_gecos = buf + ofs;
 	ofs = PTR_DIFF(src->pw_dir, first);
