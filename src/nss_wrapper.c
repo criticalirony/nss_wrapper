@@ -3465,7 +3465,8 @@ static int nwrap_files_gethostbyname(const char *name, int af,
 
 	name_len = strlen(name);
 	if (name_len < sizeof(canon_name) && name[name_len - 1] == '.') {
-		strncpy(canon_name, name, name_len - 1);
+		memcpy(canon_name, name, name_len - 1);
+		canon_name[name_len] = '\0';
 		name = canon_name;
 	}
 
@@ -3633,8 +3634,9 @@ static int nwrap_files_getaddrinfo(const char *name,
 	}
 
 	name_len = strlen(name);
-	if (name_len < DNS_NAME_MAX && name[name_len - 1] == '.') {
-		strncpy(canon_name, name, name_len - 1);
+	if (name_len < sizeof(canon_name) && name[name_len - 1] == '.') {
+		memcpy(canon_name, name, name_len - 1);
+		canon_name[name_len] = '\0';
 		name = canon_name;
 	}
 
