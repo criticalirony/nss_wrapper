@@ -5204,31 +5204,43 @@ static int nwrap_convert_he_ai(const struct hostent *he,
 	switch (he->h_addrtype) {
 		case AF_INET:
 		{
-			struct sockaddr_in *sinp =
-				(struct sockaddr_in *) ai->ai_addr;
+			union {
+				struct sockaddr *sa;
+				struct sockaddr_in *in;
+			} addr;
 
-			memset(sinp, 0, sizeof(struct sockaddr_in));
+			addr.sa = ai->ai_addr;
 
-			sinp->sin_port = htons(port);
-			sinp->sin_family = AF_INET;
+			memset(addr.in, 0, sizeof(struct sockaddr_in));
 
-			memset (sinp->sin_zero, '\0', sizeof (sinp->sin_zero));
-			memcpy(&sinp->sin_addr, he->h_addr_list[0], he->h_length);
+			addr.in->sin_port = htons(port);
+			addr.in->sin_family = AF_INET;
+
+			memset(addr.in->sin_zero,
+			       '\0',
+			       sizeof (addr.in->sin_zero));
+			memcpy(&(addr.in->sin_addr),
+			       he->h_addr_list[0],
+			       he->h_length);
 
 		}
 		break;
 #ifdef HAVE_IPV6
 		case AF_INET6:
 		{
-			struct sockaddr_in6 *sin6p =
-				(struct sockaddr_in6 *) ai->ai_addr;
+			union {
+				struct sockaddr *sa;
+				struct sockaddr_in6 *in6;
+			} addr;
 
-			memset(sin6p, 0, sizeof(struct sockaddr_in6));
+			addr.sa = ai->ai_addr;
 
-			sin6p->sin6_port = htons(port);
-			sin6p->sin6_family = AF_INET6;
+			memset(addr.in6, 0, sizeof(struct sockaddr_in6));
 
-			memcpy(&sin6p->sin6_addr,
+			addr.in6->sin6_port = htons(port);
+			addr.in6->sin6_family = AF_INET6;
+
+			memcpy(&addr.in6->sin6_addr,
 			       he->h_addr_list[0],
 			       he->h_length);
 		}
@@ -5465,21 +5477,41 @@ static int nwrap_getnameinfo(const struct sockaddr *sa, socklen_t salen,
 
 	type = sa->sa_family;
 	switch (type) {
-	case AF_INET:
-		if (salen < sizeof(struct sockaddr_in))
+	case AF_INET: {
+		union {
+			const struct sockaddr *sa;
+			const struct sockaddr_in *in;
+		} a;
+
+		if (salen < sizeof(struct sockaddr_in)) {
 			return EAI_FAMILY;
-		addr = &((const struct sockaddr_in *)sa)->sin_addr;
-		addrlen = sizeof(((const struct sockaddr_in *)sa)->sin_addr);
-		port = ntohs(((const struct sockaddr_in *)sa)->sin_port);
+		}
+
+		a.sa = sa;
+
+		addr = &(a.in->sin_addr);
+		addrlen = sizeof(a.in->sin_addr);
+		port = ntohs(a.in->sin_port);
 		break;
+	}
 #ifdef HAVE_IPV6
-	case AF_INET6:
-		if (salen < sizeof(struct sockaddr_in6))
+	case AF_INET6: {
+		union {
+			const struct sockaddr *sa;
+			const struct sockaddr_in6 *in6;
+		} a;
+
+		if (salen < sizeof(struct sockaddr_in6)) {
 			return EAI_FAMILY;
-		addr = &((const struct sockaddr_in6 *)sa)->sin6_addr;
-		addrlen = sizeof(((const struct sockaddr_in6 *)sa)->sin6_addr);
-		port = ntohs(((const struct sockaddr_in6 *)sa)->sin6_port);
+		}
+
+		a.sa = sa;
+
+		addr = &(a.in6->sin6_addr);
+		addrlen = sizeof(a.in6->sin6_addr);
+		port = ntohs(a.in6->sin6_port);
 		break;
+	}
 #endif
 	default:
 		return EAI_FAMILY;
