@@ -2557,6 +2557,10 @@ static int nwrap_gr_copy_r(const struct group *src, struct group *dst,
 	off_t ofsm;
 	off_t ofs;
 	unsigned i;
+	union {
+		char *ptr;
+		char **data;
+	} g;
 
 	first = src->gr_name;
 
@@ -2587,7 +2591,8 @@ static int nwrap_gr_copy_r(const struct group *src, struct group *dst,
 	dst->gr_passwd = buf + ofs;
 	dst->gr_gid = src->gr_gid;
 
-	dst->gr_mem = (char **)(buf + ofsb);
+	g.ptr = (buf + ofsb);
+	dst->gr_mem = g.data;
 	for (i=0; src->gr_mem[i]; i++) {
 		ofs = PTR_DIFF(src->gr_mem[i], first);
 		dst->gr_mem[i] = buf + ofs;
@@ -3548,6 +3553,10 @@ static int nwrap_gethostbyname_r(const char *name,
 				 struct hostent **result, int *h_errnop)
 {
 	struct nwrap_vector *addr_list = malloc(sizeof(struct nwrap_vector));
+	union {
+		char *ptr;
+		char **list;
+	} g;
 	int rc;
 
 	if (addr_list == NULL) {
@@ -3584,7 +3593,8 @@ static int nwrap_gethostbyname_r(const char *name,
 	free(addr_list->items);
 	free(addr_list);
 
-	ret->h_addr_list = (char **)buf;
+	g.ptr = buf;
+	ret->h_addr_list = g.list;
 	*result = ret;
 	return 0;
 }
