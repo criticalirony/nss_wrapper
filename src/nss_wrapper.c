@@ -2491,7 +2491,7 @@ static bool nwrap_gr_parse_line(struct nwrap_cache *nwrap, char *line)
 	}
 	gr->gr_mem[0] = NULL;
 
-	for(nummem=0; p; nummem++) {
+	for(nummem = 0; p != NULL && p[0] != '\0'; nummem++) {
 		char **m;
 		size_t m_size;
 		c = p;
