@@ -56,7 +56,7 @@ install(
         ${BIN_INSTALL_DIR})
 
 if (UNIT_TESTING)
-    find_package(CMocka REQUIRED)
+    find_package(cmocka 1.1.0 REQUIRED)
 
     file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/tests/valgrind.supp" VALGRIND_SUPPRESSION_FILE)
     # add the valgrind suppressions
