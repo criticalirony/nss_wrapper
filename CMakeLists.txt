@@ -29,10 +29,10 @@ set(LIBRARY_SOVERSION "0")
 # add definitions
 include(DefineCMakeDefaults)
 include(DefinePlatformDefaults)
-include(DefineInstallationPaths)
 include(DefineOptions.cmake)
 include(CPackConfig.cmake)
 include(CompilerChecks.cmake)
+include(GNUInstallDirs)
 
 # disallow in-source build
 include(MacroEnsureOutOfSourceBuild)
@@ -49,11 +49,8 @@ configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 # check subdirectories
 add_subdirectory(src)
 
-install(
-    PROGRAMS
-        nss_wrapper.pl
-    DESTINATION
-        ${BIN_INSTALL_DIR})
+install(PROGRAMS nss_wrapper.pl
+        DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 if (UNIT_TESTING)
     find_package(cmocka 1.1.0 REQUIRED)
@@ -78,7 +75,7 @@ install(
   FILES
     ${CMAKE_CURRENT_BINARY_DIR}/nss_wrapper.pc
   DESTINATION
-    ${LIB_INSTALL_DIR}/pkgconfig
+    ${CMAKE_INSTALL_LIBDIR}/pkgconfig
   COMPONENT
     pkgconfig
 )
@@ -91,7 +88,7 @@ install(
         ${CMAKE_CURRENT_BINARY_DIR}/nss_wrapper-config-version.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/nss_wrapper-config.cmake
     DESTINATION
-        ${CMAKE_INSTALL_DIR}/nss_wrapper
+        ${CMAKE_INSTALL_LIBDIR}/cmake/nss_wrapper
     COMPONENT
         devel
 )
