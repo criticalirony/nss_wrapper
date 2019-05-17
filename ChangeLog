@@ -1,6 +1,11 @@
 ChangeLog
 ==========
 
+version 1.1.6 (released 2019-05-19)
+  * Fixed issues with memory alignment of getgrnam()
+  * Fixed getpwnam() on FreeBSD
+  * Started to use modern cmake (>= 3.5.0)
+
 version 1.1.5 (released 2018-10-31)
   * Fixed running on older distributions
 
