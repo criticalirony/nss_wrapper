@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: nss_wrapper
-.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2015-09-12
+.\"    Author: Samba Team
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 2019-05-21
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "NSS_WRAPPER" "1" "2015\-09\-12" "\ \&" "\ \&"
+.TH "NSS_WRAPPER" "1" "2019\-05\-21" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -162,6 +162,11 @@ If you need to see what is going on in nss_wrapper itself or try to find a bug, 
 3 = TRACE
 .RE
 .RE
+.PP
+\fBNSS_WRAPPER_DISABLE_DEEPBIND\fR
+.RS 4
+This allows you to disable deep binding in nss_wrapper\&. This is useful for running valgrind tools or sanitizers like (address, undefined, thread)\&.
+.RE
 .SH "EXAMPLE"
 .sp
 .if n \{\
@@ -181,3 +186,9 @@ test\&.example\&.org
 .if n \{\
 .RE
 .\}
+.SH "AUTHOR"
+.PP
+\fBSamba Team\fR
+.RS 4
+Author.
+.RE

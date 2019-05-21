@@ -1,6 +1,7 @@
 nss_wrapper(1)
 ==============
-:revdate: 2015-09-12
+:revdate: 2019-05-21
+:author: Samba Team
 
 NAME
 ----
@@ -89,6 +90,11 @@ debug symbols.
 - 1 = WARNING
 - 2 = DEBUG
 - 3 = TRACE
+
+*NSS_WRAPPER_DISABLE_DEEPBIND*::
+
+This allows you to disable deep binding in nss_wrapper. This is useful for
+running valgrind tools or sanitizers like (address, undefined, thread).
 
 EXAMPLE
 -------
