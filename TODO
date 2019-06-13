@@ -3,7 +3,7 @@ TODO
 
 Library
 --------
-* None at the moment.
+* Replace hcreate() as it messes with applications also using it.
 
 Testing
 --------
