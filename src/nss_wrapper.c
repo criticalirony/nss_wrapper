@@ -399,6 +399,10 @@ struct nwrap_module_nss_fns {
 					   int af, struct hostent *result,
 					   char *buffer, size_t buflen,
 					   int *errnop, int *h_errnop);
+	NSS_STATUS (*_nss_gethostbyname2_r)(const char *name, int af,
+					    struct hostent *result,
+					    char *buffer, size_t buflen,
+					    int *errnop, int *h_errnop);
 };
 
 struct nwrap_backend {
@@ -408,6 +412,8 @@ struct nwrap_backend {
 	struct nwrap_ops *ops;
 	struct nwrap_module_nss_fns *fns;
 };
+
+struct nwrap_vector;
 
 struct nwrap_ops {
 	struct passwd *	(*nw_getpwnam)(struct nwrap_backend *b,
@@ -447,6 +453,15 @@ struct nwrap_ops {
 	struct hostent *(*nw_gethostbyaddr)(struct nwrap_backend *b,
 					    const void *addr,
 					    socklen_t len, int type);
+	struct hostent *(*nw_gethostbyname)(struct nwrap_backend *b,
+					    const char *name);
+	struct hostent *(*nw_gethostbyname2)(struct nwrap_backend *b,
+					     const char *name, int af);
+	int		(*nw_gethostbyname2_r)(struct nwrap_backend *b,
+					       const char *name, int af,
+					       struct hostent *hedst,
+					       char *buf, size_t buflen,
+					       struct hostent **hedstp);
 };
 
 /* Public prototypes */
@@ -495,6 +510,15 @@ static void nwrap_files_endgrent(struct nwrap_backend *b);
 static struct hostent *nwrap_files_gethostbyaddr(struct nwrap_backend *b,
 						 const void *addr,
 						 socklen_t len, int type);
+static struct hostent *nwrap_files_gethostbyname(struct nwrap_backend *b,
+						 const char *name);
+static struct hostent *nwrap_files_gethostbyname2(struct nwrap_backend *b,
+						  const char *name, int af);
+static int nwrap_files_gethostbyname2_r(struct nwrap_backend *b,
+					const char *name, int af,
+					struct hostent *hedst,
+					char *buf, size_t buflen,
+					struct hostent **hedstp);
 
 /* prototypes for module backend */
 
@@ -535,6 +559,15 @@ static int nwrap_module_initgroups(struct nwrap_backend *b,
 static struct hostent *nwrap_module_gethostbyaddr(struct nwrap_backend *b,
 						  const void *addr,
 						  socklen_t len, int type);
+static struct hostent *nwrap_module_gethostbyname(struct nwrap_backend *b,
+						  const char *name);
+static struct hostent *nwrap_module_gethostbyname2(struct nwrap_backend *b,
+						   const char *name, int af);
+static int nwrap_module_gethostbyname2_r(struct nwrap_backend *b,
+					 const char *name, int af,
+					 struct hostent *hedst,
+					 char *buf, size_t buflen,
+					 struct hostent **hedstp);
 
 struct nwrap_ops nwrap_files_ops = {
 	.nw_getpwnam	= nwrap_files_getpwnam,
@@ -555,6 +588,9 @@ struct nwrap_ops nwrap_files_ops = {
 	.nw_getgrent_r	= nwrap_files_getgrent_r,
 	.nw_endgrent	= nwrap_files_endgrent,
 	.nw_gethostbyaddr 	= nwrap_files_gethostbyaddr,
+	.nw_gethostbyname	= nwrap_files_gethostbyname,
+	.nw_gethostbyname2	= nwrap_files_gethostbyname2,
+	.nw_gethostbyname2_r	= nwrap_files_gethostbyname2_r,
 };
 
 struct nwrap_ops nwrap_module_ops = {
@@ -576,6 +612,9 @@ struct nwrap_ops nwrap_module_ops = {
 	.nw_getgrent_r	= nwrap_module_getgrent_r,
 	.nw_endgrent	= nwrap_module_endgrent,
 	.nw_gethostbyaddr 	= nwrap_module_gethostbyaddr,
+	.nw_gethostbyname	= nwrap_module_gethostbyname,
+	.nw_gethostbyname2	= nwrap_module_gethostbyname2,
+	.nw_gethostbyname2_r	= nwrap_module_gethostbyname2_r,
 };
 
 struct nwrap_libc {
@@ -1492,6 +1531,8 @@ static struct nwrap_module_nss_fns *nwrap_load_module_fns(struct nwrap_backend *
 		nwrap_load_module_fn(b, "endgrent");
 	*(void **)(&fns->_nss_gethostbyaddr_r) =
 		nwrap_load_module_fn(b, "gethostbyaddr_r");
+	*(void **)(&fns->_nss_gethostbyname2_r) =
+		nwrap_load_module_fn(b, "gethostbyname2_r");
 
 	return fns;
 }
@@ -3530,9 +3571,9 @@ static void nwrap_files_endgrent(struct nwrap_backend *b)
 }
 
 /* hosts functions */
-static int nwrap_files_gethostbyname(const char *name, int af,
-				     struct hostent *result,
-				     struct nwrap_vector *addr_list)
+static int nwrap_files_internal_gethostbyname(const char *name, int af,
+					      struct hostent *result,
+					      struct nwrap_vector *addr_list)
 {
 	struct nwrap_entlist *el;
 	struct hostent *he;
@@ -3628,11 +3669,11 @@ no_ent:
 	return -1;
 }
 
-#ifdef HAVE_GETHOSTBYNAME_R
-static int nwrap_gethostbyname_r(const char *name,
-				 struct hostent *ret,
-				 char *buf, size_t buflen,
-				 struct hostent **result, int *h_errnop)
+static int nwrap_files_gethostbyname2_r(struct nwrap_backend *b,
+					const char *name, int af,
+					struct hostent *hedst,
+					char *buf, size_t buflen,
+					struct hostent **hedstp)
 {
 	struct nwrap_vector *addr_list = malloc(sizeof(struct nwrap_vector));
 	union {
@@ -3640,6 +3681,9 @@ static int nwrap_gethostbyname_r(const char *name,
 		char **list;
 	} g;
 	int rc;
+
+	(void) b; /* unused */
+	(void) af; /* unused */
 
 	if (addr_list == NULL) {
 		NWRAP_LOG(NWRAP_LOG_ERROR,
@@ -3650,9 +3694,9 @@ static int nwrap_gethostbyname_r(const char *name,
 
 	ZERO_STRUCTP(addr_list);
 
-	rc = nwrap_files_gethostbyname(name, AF_UNSPEC, ret, addr_list);
+	rc = nwrap_files_internal_gethostbyname(name, AF_UNSPEC, hedst,
+						addr_list);
 	if (rc == -1) {
-		*h_errnop = h_errno;
 		if (addr_list->items != NULL) {
 			free(addr_list->items);
 		}
@@ -3676,9 +3720,30 @@ static int nwrap_gethostbyname_r(const char *name,
 	free(addr_list);
 
 	g.ptr = buf;
-	ret->h_addr_list = g.list;
-	*result = ret;
+	hedst->h_addr_list = g.list;
+	*hedstp = hedst;
 	return 0;
+}
+
+#ifdef HAVE_GETHOSTBYNAME_R
+static int nwrap_gethostbyname_r(const char *name,
+				 struct hostent *ret,
+				 char *buf, size_t buflen,
+				 struct hostent **result, int *h_errnop)
+{
+	int rc;
+	size_t i;
+
+	for (i=0; i < nwrap_main_global->num_backends; i++) {
+		struct nwrap_backend *b = &nwrap_main_global->backends[i];
+		rc = b->ops->nw_gethostbyname2_r(b, name, AF_UNSPEC, ret,
+						 buf, buflen, result);
+		if (rc == 0) {
+			return 0;
+		}
+	}
+	*h_errnop = h_errno;
+	return ENOENT;
 }
 
 int gethostbyname_r(const char *name,
@@ -3696,6 +3761,42 @@ int gethostbyname_r(const char *name,
 	}
 
 	return nwrap_gethostbyname_r(name, ret, buf, buflen, result, h_errnop);
+}
+#endif
+
+#ifdef HAVE_GETHOSTBYNAME2_R
+static int nwrap_gethostbyname2_r(const char *name, int af,
+				 struct hostent *ret,
+				 char *buf, size_t buflen,
+				 struct hostent **result, int *h_errnop)
+{
+	int rc;
+	size_t i;
+
+	for (i=0; i < nwrap_main_global->num_backends; i++) {
+		struct nwrap_backend *b = &nwrap_main_global->backends[i];
+		rc = b->ops->nw_gethostbyname2_r(b, name, af, ret,
+						 buf, buflen, result);
+		if (rc == 0) {
+			return 0;
+		}
+	}
+	*h_errnop = h_errno;
+	return ENOENT;
+}
+
+int gethostbyname2_r(const char *name, int af,
+		     struct hostent *ret,
+		     char *buf, size_t buflen,
+		     struct hostent **result, int *h_errnop)
+{
+	if (!nss_wrapper_hosts_enabled()) {
+		return libc_gethostbyname2_r(name, af, ret, buf, buflen,
+					     result, h_errnop);
+	}
+
+	return nwrap_gethostbyname2_r(name, af, ret, buf, buflen, result,
+				      h_errnop);
 }
 #endif
 
@@ -4401,6 +4502,129 @@ again:
 		SAFE_FREE(buf);
 		return NULL;
 	}
+
+	return &he;
+}
+
+static int nwrap_module_gethostbyname2_r(struct nwrap_backend *b,
+					 const char *name, int af,
+					 struct hostent *hedst,
+					 char *buf, size_t buflen,
+					 struct hostent **hedstp)
+{
+	NSS_STATUS status;
+
+	*hedstp = NULL;
+
+	if (b->fns->_nss_gethostbyname2_r == NULL) {
+		return ENOENT;
+	}
+
+	status = b->fns->_nss_gethostbyname2_r(name, af, hedst,
+					       buf, buflen, &errno, &h_errno);
+	switch (status) {
+	case NSS_STATUS_SUCCESS:
+		*hedstp = hedst;
+		return 0;
+	case NSS_STATUS_NOTFOUND:
+		if (errno != 0) {
+			return errno;
+		}
+		return ENOENT;
+	case NSS_STATUS_TRYAGAIN:
+		if (errno != 0) {
+			return errno;
+		}
+		return ERANGE;
+	default:
+		if (errno != 0) {
+			return errno;
+		}
+		return status;
+	}
+}
+
+static struct hostent *nwrap_module_gethostbyname(struct nwrap_backend *b,
+						  const char *name)
+{
+	static struct hostent he;
+	static char *buf = NULL;
+	static size_t buflen = 1000;
+	NSS_STATUS status;
+
+	if (b->fns->_nss_gethostbyname2_r == NULL) {
+		return NULL;
+	}
+
+	if (buf == NULL) {
+		buf = (char *)malloc(buflen);
+		if (buf == NULL) {
+			return NULL;
+		}
+	}
+
+again:
+	status = b->fns->_nss_gethostbyname2_r(name, AF_UNSPEC, &he,
+					       buf, buflen, &errno, &h_errno);
+	if (status == NSS_STATUS_TRYAGAIN) {
+		buflen *= 2;
+		buf = (char *)realloc(buf, buflen);
+		if (buf == NULL) {
+			return NULL;
+		}
+		goto again;
+	}
+	if (status == NSS_STATUS_NOTFOUND) {
+		SAFE_FREE(buf);
+		return NULL;
+	}
+	if (status != NSS_STATUS_SUCCESS) {
+		SAFE_FREE(buf);
+		return NULL;
+	}
+
+	return &he;
+}
+
+static struct hostent *nwrap_module_gethostbyname2(struct nwrap_backend *b,
+						   const char *name, int af)
+{
+	static struct hostent he;
+	static char *buf = NULL;
+	static size_t buflen = 1000;
+	NSS_STATUS status;
+
+	if (b->fns->_nss_gethostbyname2_r == NULL) {
+		return NULL;
+	}
+
+	if (buf == NULL) {
+		buf = (char *)malloc(buflen);
+		if (buf == NULL) {
+			return NULL;
+		}
+	}
+
+again:
+	status = b->fns->_nss_gethostbyname2_r(name, af, &he,
+					       buf, buflen, &errno, &h_errno);
+	if (status == NSS_STATUS_TRYAGAIN) {
+		buflen *= 2;
+		buf = (char *)realloc(buf, buflen);
+		if (buf == NULL) {
+			return NULL;
+		}
+		goto again;
+	}
+	if (status == NSS_STATUS_NOTFOUND) {
+		SAFE_FREE(buf);
+		return NULL;
+	}
+	if (status != NSS_STATUS_SUCCESS) {
+		SAFE_FREE(buf);
+		return NULL;
+	}
+
 	return &he;
 }
 
@@ -5197,6 +5421,7 @@ void endhostent(void)
 }
 #endif /* HAVE_SOLARIS_ENDHOSTENT */
 
+
 #ifdef BSD
 /* BSD implementation stores data in thread local storage but GLIBC does not */
 static __thread struct hostent user_he;
@@ -5205,12 +5430,37 @@ static __thread struct nwrap_vector user_addrlist;
 static struct hostent user_he;
 static struct nwrap_vector user_addrlist;
 #endif /* BSD */
+
+static struct hostent *nwrap_files_gethostbyname(struct nwrap_backend *b,
+						 const char *name)
+{
+	int ret;
+
+	(void) b; /* unused */
+
+	ret = nwrap_files_internal_gethostbyname(name, AF_UNSPEC, &user_he,
+						 &user_addrlist);
+	if (ret == 0) {
+		return &user_he;
+	}
+
+	return NULL;
+}
+
 static struct hostent *nwrap_gethostbyname(const char *name)
 {
-	if (nwrap_files_gethostbyname(name, AF_UNSPEC, &user_he, &user_addrlist) == -1) {
-		return NULL;
+	size_t i;
+	struct hostent *he = NULL;
+
+	for (i=0; i < nwrap_main_global->num_backends; i++) {
+		struct nwrap_backend *b = &nwrap_main_global->backends[i];
+		he = b->ops->nw_gethostbyname(b, name);
+		if (he != NULL) {
+			return he;
+		}
 	}
-	return &user_he;
+
+	return NULL;
 }
 
 struct hostent *gethostbyname(const char *name)
@@ -5232,12 +5482,37 @@ static __thread struct nwrap_vector user_addrlist2;
 static struct hostent user_he2;
 static struct nwrap_vector user_addrlist2;
 #endif /* BSD */
+
+static struct hostent *nwrap_files_gethostbyname2(struct nwrap_backend *b,
+						  const char *name, int af)
+{
+	int ret;
+
+	(void) b; /* unused */
+
+	ret = nwrap_files_internal_gethostbyname(name, af, &user_he2,
+						 &user_addrlist2);
+	if (ret == 0) {
+		return &user_he2;
+	}
+
+	return NULL;
+}
+
 static struct hostent *nwrap_gethostbyname2(const char *name, int af)
 {
-	if (nwrap_files_gethostbyname(name, af, &user_he2, &user_addrlist2) == -1) {
-		return NULL;
+	size_t i;
+	struct hostent *he = NULL;
+
+	for (i=0; i < nwrap_main_global->num_backends; i++) {
+		struct nwrap_backend *b = &nwrap_main_global->backends[i];
+		he = b->ops->nw_gethostbyname2(b, name, af);
+		if (he != NULL) {
+			return he;
+		}
 	}
-	return &user_he2;
+
+	return NULL;
 }
 
 struct hostent *gethostbyname2(const char *name, int af)
