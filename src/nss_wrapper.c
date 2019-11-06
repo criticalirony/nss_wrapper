@@ -243,10 +243,6 @@ enum nwrap_dbglvl_e {
 	NWRAP_LOG_TRACE
 };
 
-#ifdef NDEBUG
-# define NWRAP_LOG(...)
-#else
-
 static void nwrap_log(enum nwrap_dbglvl_e dbglvl, const char *func, const char *format, ...) PRINTF_ATTRIBUTE(3, 4);
 # define NWRAP_LOG(dbglvl, ...) nwrap_log((dbglvl), __func__, __VA_ARGS__)
 
@@ -294,7 +290,6 @@ static void nwrap_log(enum nwrap_dbglvl_e dbglvl,
 		}
 	}
 }
-#endif /* NDEBUG NWRAP_LOG */
 
 struct nwrap_libc_fns {
 	struct passwd *(*_libc_getpwnam)(const char *name);
@@ -824,7 +819,6 @@ enum nwrap_lib {
     NWRAP_LIBSOCKET,
 };
 
-#ifndef NDEBUG
 static const char *nwrap_str_lib(enum nwrap_lib lib)
 {
 	switch (lib) {
@@ -839,7 +833,6 @@ static const char *nwrap_str_lib(enum nwrap_lib lib)
 	/* Compiler would warn us about unhandled enum value if we get here */
 	return "unknown";
 }
-#endif
 
 static void *nwrap_load_lib_handle(enum nwrap_lib lib)
 {
