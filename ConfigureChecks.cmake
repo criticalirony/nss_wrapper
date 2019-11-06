@@ -78,6 +78,9 @@ check_function_exists(gethostbyname_r HAVE_GETHOSTBYNAME_R)
 
 check_function_exists(gethostbyname2 HAVE_GETHOSTBYNAME2)
 
+check_function_exists(getprogname HAVE_GETPROGNAME)
+check_function_exists(getexecname HAVE_GETEXECNAME)
+
 if (WIN32)
     check_function_exists(_vsnprintf_s HAVE__VSNPRINTF_S)
     check_function_exists(_vsnprintf HAVE__VSNPRINTF)
