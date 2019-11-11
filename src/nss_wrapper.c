@@ -625,7 +625,7 @@ struct nwrap_libc {
 };
 
 struct nwrap_main {
-	int num_backends;
+	size_t num_backends;
 	struct nwrap_backend *backends;
 	struct nwrap_libc *libc;
 };
@@ -1559,7 +1559,7 @@ static void *nwrap_load_module(const char *so_path)
 static bool nwrap_module_init(const char *name,
 			      struct nwrap_ops *ops,
 			      const char *so_path,
-			      int *num_backends,
+			      size_t *num_backends,
 			      struct nwrap_backend **backends)
 {
 	struct nwrap_backend *b;
@@ -4634,7 +4634,7 @@ again:
 
 static struct passwd *nwrap_getpwnam(const char *name)
 {
-	int i;
+	size_t i;
 	struct passwd *pwd;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
@@ -4664,7 +4664,8 @@ struct passwd *getpwnam(const char *name)
 static int nwrap_getpwnam_r(const char *name, struct passwd *pwdst,
 			    char *buf, size_t buflen, struct passwd **pwdstp)
 {
-	int i,ret;
+	size_t i;
+	int ret;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
 		struct nwrap_backend *b = &nwrap_main_global->backends[i];
@@ -4701,7 +4702,7 @@ int getpwnam_r(const char *name, struct passwd *pwdst,
 
 static struct passwd *nwrap_getpwuid(uid_t uid)
 {
-	int i;
+	size_t i;
 	struct passwd *pwd;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
@@ -4731,7 +4732,8 @@ struct passwd *getpwuid(uid_t uid)
 static int nwrap_getpwuid_r(uid_t uid, struct passwd *pwdst,
 			    char *buf, size_t buflen, struct passwd **pwdstp)
 {
-	int i,ret;
+	size_t i;
+	int ret;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
 		struct nwrap_backend *b = &nwrap_main_global->backends[i];
@@ -4766,7 +4768,7 @@ int getpwuid_r(uid_t uid, struct passwd *pwdst,
 
 static void nwrap_setpwent(void)
 {
-	int i;
+	size_t i;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
 		struct nwrap_backend *b = &nwrap_main_global->backends[i];
@@ -4790,7 +4792,7 @@ void setpwent(void)
 
 static struct passwd *nwrap_getpwent(void)
 {
-	int i;
+	size_t i;
 	struct passwd *pwd;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
@@ -4821,7 +4823,8 @@ struct passwd *getpwent(void)
 static int nwrap_getpwent_r(struct passwd *pwdst, char *buf,
 			    size_t buflen, struct passwd **pwdstp)
 {
-	int i,ret;
+	size_t i;
+	int ret;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
 		struct nwrap_backend *b = &nwrap_main_global->backends[i];
@@ -4870,7 +4873,7 @@ int getpwent_r(struct passwd *pwdst, char *buf,
 
 static void nwrap_endpwent(void)
 {
-	int i;
+	size_t i;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
 		struct nwrap_backend *b = &nwrap_main_global->backends[i];
@@ -4894,7 +4897,7 @@ void endpwent(void)
 
 static int nwrap_initgroups(const char *user, gid_t group)
 {
-	int i;
+	size_t i;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
 		struct nwrap_backend *b = &nwrap_main_global->backends[i];
@@ -4925,7 +4928,7 @@ int initgroups(const char *user, gid_t group)
 
 static struct group *nwrap_getgrnam(const char *name)
 {
-	int i;
+	size_t i;
 	struct group *grp;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
@@ -4955,7 +4958,8 @@ struct group *getgrnam(const char *name)
 static int nwrap_getgrnam_r(const char *name, struct group *grdst,
 			    char *buf, size_t buflen, struct group **grdstp)
 {
-	int i, ret;
+	size_t i;
+	int ret;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
 		struct nwrap_backend *b = &nwrap_main_global->backends[i];
@@ -4996,7 +5000,7 @@ int getgrnam_r(const char *name, struct group *grp,
 
 static struct group *nwrap_getgrgid(gid_t gid)
 {
-	int i;
+	size_t i;
 	struct group *grp;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
@@ -5026,7 +5030,8 @@ struct group *getgrgid(gid_t gid)
 static int nwrap_getgrgid_r(gid_t gid, struct group *grdst,
 			    char *buf, size_t buflen, struct group **grdstp)
 {
-	int i,ret;
+	size_t i;
+	int ret;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
 		struct nwrap_backend *b = &nwrap_main_global->backends[i];
@@ -5063,7 +5068,7 @@ int getgrgid_r(gid_t gid, struct group *grdst,
 
 static void nwrap_setgrent(void)
 {
-	int i;
+	size_t i;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
 		struct nwrap_backend *b = &nwrap_main_global->backends[i];
@@ -5098,7 +5103,7 @@ out:
 
 static struct group *nwrap_getgrent(void)
 {
-	int i;
+	size_t i;
 	struct group *grp;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
@@ -5129,7 +5134,8 @@ struct group *getgrent(void)
 static int nwrap_getgrent_r(struct group *grdst, char *buf,
 			    size_t buflen, struct group **grdstp)
 {
-	int i,ret;
+	size_t i;
+	int ret;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
 		struct nwrap_backend *b = &nwrap_main_global->backends[i];
@@ -5179,7 +5185,7 @@ int getgrent_r(struct group *src, char *buf,
 
 static void nwrap_endgrent(void)
 {
-	int i;
+	size_t i;
 
 	for (i=0; i < nwrap_main_global->num_backends; i++) {
 		struct nwrap_backend *b = &nwrap_main_global->backends[i];
@@ -6059,7 +6065,7 @@ void nwrap_constructor(void)
  */
 void nwrap_destructor(void)
 {
-	int i;
+	size_t i;
 
 	NWRAP_LOCK_ALL;
 	if (nwrap_main_global != NULL) {
