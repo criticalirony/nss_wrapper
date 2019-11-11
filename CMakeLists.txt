@@ -11,7 +11,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
 include(DefineCMakeDefaults)
 include(DefineCompilerFlags)
 
-project(nss_wrapper VERSION 1.1.6 LANGUAGES C)
+project(nss_wrapper VERSION 1.1.7 LANGUAGES C)
 
 # global needed variables
 set(APPLICATION_NAME ${PROJECT_NAME})
