@@ -812,8 +812,10 @@ static bool test_nwrap_membership_user(const struct passwd *pwd,
 		struct group grp = grp_array[i];
 
 		if (test_nwrap_user_in_group(pwd, &grp)) {
+			struct group current_grp = {
+				.gr_name = NULL,
+			};
 
-			struct group current_grp;
 			num_user_groups_from_enum++;
 
 			test_nwrap_getgrnam(grp.gr_name, &current_grp);
