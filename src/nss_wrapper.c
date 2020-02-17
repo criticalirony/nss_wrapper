@@ -4617,11 +4617,15 @@ again:
 	status = b->fns->_nss_gethostbyname2_r(name, af, &he,
 					       buf, buflen, &errno, &h_errno);
 	if (status == NSS_STATUS_TRYAGAIN) {
+		char *p = NULL;
+
 		buflen *= 2;
-		buf = (char *)realloc(buf, buflen);
-		if (buf == NULL) {
+		p = (char *)realloc(buf, buflen);
+		if (p == NULL) {
+			SAFE_FREE(buf);
 			return NULL;
 		}
+		buf = p;
 		goto again;
 	}
 	if (status == NSS_STATUS_NOTFOUND) {
