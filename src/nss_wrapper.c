@@ -1471,21 +1471,23 @@ static int libc_getnameinfo(const struct sockaddr *sa,
 static void *nwrap_load_module_fn(struct nwrap_backend *b,
 				  const char *fn_name)
 {
-	void *res;
-	char *s;
+	void *res = NULL;
+	char *s = NULL;
+	int rc;
 
-	if (!b->so_handle) {
+	if (b->so_handle == NULL) {
 		NWRAP_LOG(NWRAP_LOG_ERROR, "No handle");
 		return NULL;
 	}
 
-	if (asprintf(&s, "_nss_%s_%s", b->name, fn_name) == -1) {
+	rc = asprintf(&s, "_nss_%s_%s", b->name, fn_name);
+	if (rc == -1) {
 		NWRAP_LOG(NWRAP_LOG_ERROR, "Out of memory");
 		return NULL;
 	}
 
 	res = dlsym(b->so_handle, s);
-	if (!res) {
+	if (res == NULL) {
 		NWRAP_LOG(NWRAP_LOG_ERROR,
 			  "Cannot find function %s in %s",
 			  s, b->so_path);
