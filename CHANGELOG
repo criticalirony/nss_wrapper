@@ -1,6 +1,10 @@
 ChangeLog
 ==========
 
+version 1.1.8 (released 2020-02-17)
+  * Fixed path to library in nss_wrapper.pc
+  * Try different backends for gethostbyaddr nd gethostbyname
+
 version 1.1.7 (released 2019-11-11)
   * Added NSS_WRAPPER_DISABLE_DEEPBIND env variable
   * Improvded logging
