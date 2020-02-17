@@ -1488,7 +1488,7 @@ static void *nwrap_load_module_fn(struct nwrap_backend *b,
 
 	res = dlsym(b->so_handle, s);
 	if (res == NULL) {
-		NWRAP_LOG(NWRAP_LOG_ERROR,
+		NWRAP_LOG(NWRAP_LOG_WARN,
 			  "Cannot find function %s in %s",
 			  s, b->so_path);
 	}
