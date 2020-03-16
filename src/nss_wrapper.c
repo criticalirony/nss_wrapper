@@ -512,8 +512,10 @@ static struct hostent *nwrap_files_gethostbyaddr(struct nwrap_backend *b,
 						 socklen_t len, int type);
 static struct hostent *nwrap_files_gethostbyname(struct nwrap_backend *b,
 						 const char *name);
+#ifdef HAVE_GETHOSTBYNAME2
 static struct hostent *nwrap_files_gethostbyname2(struct nwrap_backend *b,
 						  const char *name, int af);
+#endif /* HAVE_GETHOSTBYNAME2 */
 static int nwrap_files_gethostbyname2_r(struct nwrap_backend *b,
 					const char *name, int af,
 					struct hostent *hedst,
@@ -589,7 +591,9 @@ struct nwrap_ops nwrap_files_ops = {
 	.nw_endgrent	= nwrap_files_endgrent,
 	.nw_gethostbyaddr 	= nwrap_files_gethostbyaddr,
 	.nw_gethostbyname	= nwrap_files_gethostbyname,
+#ifdef HAVE_GETHOSTBYNAME2
 	.nw_gethostbyname2	= nwrap_files_gethostbyname2,
+#endif /* HAVE_GETHOSTBYNAME2 */
 	.nw_gethostbyname2_r	= nwrap_files_gethostbyname2_r,
 };
 
