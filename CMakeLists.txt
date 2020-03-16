@@ -16,15 +16,18 @@ project(nss_wrapper VERSION 1.1.8 LANGUAGES C)
 # global needed variables
 set(APPLICATION_NAME ${PROJECT_NAME})
 
-# SOVERSION scheme: CURRENT.AGE.REVISION
+# SOVERSION scheme: MAJOR.MINOR.PATCH
 #   If there was an incompatible interface change:
-#     Increment CURRENT. Set AGE and REVISION to 0
+#     Increment MAJOR. Set MINOR and PATCH to 0
 #   If there was a compatible interface change:
-#     Increment AGE. Set REVISION to 0
+#     Increment MINOR. Set PATCH to 0
 #   If the source code was changed, but there were no interface changes:
-#     Increment REVISION.
-set(LIBRARY_VERSION "0.2.7")
-set(LIBRARY_SOVERSION "0")
+#     Increment PATCH.
+set(LIBRARY_VERSION_MAJOR 0)
+set(LIBRARY_VERSION_MINOR 2)
+set(LIBRARY_VERSION_PATCH 8)
+set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}.${LIBRARY_VERSION_PATCH}")
+set(LIBRARY_SOVERSION ${LIBRARY_VERSION_MAJOR})
 
 # add definitions
 include(DefineCMakeDefaults)
