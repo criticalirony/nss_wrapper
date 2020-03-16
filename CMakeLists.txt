@@ -94,3 +94,7 @@ install(
 )
 
 add_subdirectory(doc)
+
+# Add 'make dist' target which makes sure to invoke cmake before
+add_custom_target(dist
+                  COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
