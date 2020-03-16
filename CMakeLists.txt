@@ -98,3 +98,8 @@ add_subdirectory(doc)
 # Add 'make dist' target which makes sure to invoke cmake before
 add_custom_target(dist
                   COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
+
+# Link combile database for clangd
+execute_process(COMMAND cmake -E create_symlink
+                "${CMAKE_BINARY_DIR}/compile_commands.json"
+                "${CMAKE_SOURCE_DIR}/compile_commands.json")
