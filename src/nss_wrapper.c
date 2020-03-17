@@ -3711,7 +3711,7 @@ static int nwrap_files_gethostbyname2_r(struct nwrap_backend *b,
 					char *buf, size_t buflen,
 					struct hostent **hedstp)
 {
-	struct nwrap_vector *addr_list = malloc(sizeof(struct nwrap_vector));
+	struct nwrap_vector *addr_list = NULL;
 	union {
 		char *ptr;
 		char **list;
@@ -3721,14 +3721,13 @@ static int nwrap_files_gethostbyname2_r(struct nwrap_backend *b,
 	(void) b; /* unused */
 	(void) af; /* unused */
 
+	addr_list = calloc(1, sizeof(struct nwrap_vector));
 	if (addr_list == NULL) {
 		NWRAP_LOG(NWRAP_LOG_ERROR,
 			  "Unable to allocate memory for address list");
 		errno = ENOENT;
 		return -1;
 	}
-
-	ZERO_STRUCTP(addr_list);
 
 	rc = nwrap_files_internal_gethostbyname(name, AF_UNSPEC, hedst,
 						addr_list);
