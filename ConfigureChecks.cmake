@@ -77,6 +77,7 @@ check_function_exists(gethostbyaddr_r HAVE_GETHOSTBYADDR_R)
 check_function_exists(gethostbyname_r HAVE_GETHOSTBYNAME_R)
 
 check_function_exists(gethostbyname2 HAVE_GETHOSTBYNAME2)
+check_function_exists(gethostbyname2_r HAVE_GETHOSTBYNAME2_R)
 
 check_function_exists(getprogname HAVE_GETPROGNAME)
 check_function_exists(getexecname HAVE_GETEXECNAME)

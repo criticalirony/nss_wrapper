@@ -59,6 +59,9 @@
 /* Define to 1 if you have the `gethostbyname2' function. */
 #cmakedefine HAVE_GETHOSTBYNAME2 1
 
+/* Define to 1 if you have the `gethostbyname2_r' function. */
+#cmakedefine HAVE_GETHOSTBYNAME2_R 1
+
 #cmakedefine HAVE_GETPROGNAME 1
 #cmakedefine HAVE_GETEXECNAME 1
 
