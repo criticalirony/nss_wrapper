@@ -3742,7 +3742,7 @@ static int nwrap_files_gethostbyname2_r(struct nwrap_backend *b,
 		return -1;
 	}
 
-	rc = nwrap_files_internal_gethostbyname(name, AF_UNSPEC, hedst,
+	rc = nwrap_files_internal_gethostbyname(name, af, hedst,
 						addr_list);
 	if (rc == -1) {
 		SAFE_FREE(addr_list->items);
