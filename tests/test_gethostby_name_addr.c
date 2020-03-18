@@ -274,6 +274,103 @@ static void test_nwrap_gethostbyname_r_null(void **state)
 }
 #endif
 
+#ifdef HAVE_GETHOSTBYNAME2_R
+static void test_nwrap_gethostbyname2_r_v4(void **state)
+{
+	char *buf = NULL;
+	size_t buflen = 2;
+	char ip[INET_ADDRSTRLEN];
+	struct hostent hb, *he;
+	const char *a;
+	int herr = 0;
+	int rc;
+
+	(void) state; /* unused */
+
+	for (rc = ERANGE, buflen = 2; rc == ERANGE; buflen *= 2) {
+		if (buf != NULL) {
+			free(buf);
+		}
+		buf = calloc(1, buflen);
+		assert_non_null(buf);
+
+		rc = gethostbyname2_r("magrathea.galaxy.site", AF_INET,
+				      &hb,
+				      buf, buflen,
+				      &he,
+				      &herr);
+	}
+
+	assert_int_equal(rc, 0);
+	assert_int_equal(herr, 0);
+	assert_non_null(he);
+	assert_non_null(he->h_name);
+	assert_non_null(he->h_addr_list);
+
+	assert_string_equal(he->h_name, "magrathea.galaxy.site");
+	assert_int_equal(he->h_addrtype, AF_INET);
+
+	assert_non_null(he->h_addr_list[0]);
+	a = inet_ntop(AF_INET, he->h_addr_list[0], ip, sizeof(ip));
+	assert_non_null(a);
+	assert_string_equal(a, "127.0.0.11");
+
+	assert_non_null(he->h_addr_list[1]);
+	a = inet_ntop(AF_INET, he->h_addr_list[1], ip, sizeof(ip));
+	assert_non_null(a);
+	assert_string_equal(a, "127.0.0.12");
+
+	assert_null(he->h_addr_list[2]);
+
+	free(buf);
+}
+
+static void test_nwrap_gethostbyname2_r_v6(void **state)
+{
+	char *buf = NULL;
+	size_t buflen = 2;
+	char ip[INET6_ADDRSTRLEN];
+	struct hostent hb, *he;
+	const char *a;
+	int herr = 0;
+	int rc;
+
+	(void) state; /* unused */
+
+	for (rc = ERANGE, buflen = 2; rc == ERANGE; buflen *= 2) {
+		if (buf != NULL) {
+			free(buf);
+		}
+		buf = calloc(1, buflen);
+		assert_non_null(buf);
+
+		rc = gethostbyname2_r("magrathea.galaxy.site", AF_INET6,
+				      &hb,
+				      buf, buflen,
+				      &he,
+				      &herr);
+	}
+
+	assert_int_equal(rc, 0);
+	assert_int_equal(herr, 0);
+	assert_non_null(he);
+	assert_non_null(he->h_name);
+	assert_non_null(he->h_addr_list);
+
+	assert_string_equal(he->h_name, "magrathea.galaxy.site");
+	assert_int_equal(he->h_addrtype, AF_INET6);
+
+	assert_non_null(he->h_addr_list[0]);
+	a = inet_ntop(AF_INET6, he->h_addr_list[0], ip, sizeof(ip));
+	assert_non_null(a);
+	assert_string_equal(a, "::29a");
+
+	assert_null(he->h_addr_list[1]);
+
+	free(buf);
+}
+#endif
+
 #ifdef HAVE_GETHOSTBYADDR_R
 static void test_nwrap_gethostbyaddr_r(void **state)
 {
@@ -319,6 +416,10 @@ int main(void) {
 #ifdef HAVE_GETHOSTBYNAME_R
 		cmocka_unit_test(test_nwrap_gethostbyname_r),
 		cmocka_unit_test(test_nwrap_gethostbyname_r_null),
+#endif
+#ifdef HAVE_GETHOSTBYNAME2_R
+		cmocka_unit_test(test_nwrap_gethostbyname2_r_v4),
+		cmocka_unit_test(test_nwrap_gethostbyname2_r_v6),
 #endif
 #ifdef HAVE_GETHOSTBYADDR_R
 		cmocka_unit_test(test_nwrap_gethostbyaddr_r),
