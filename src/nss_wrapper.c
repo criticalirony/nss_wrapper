@@ -3751,7 +3751,8 @@ static int nwrap_files_gethostbyname2_r(struct nwrap_backend *b,
 		return -1;
 	}
 
-	if (buflen < (addr_list->count * sizeof(void *))) {
+	/* +1 i for ending NULL pointer */
+	if (buflen < ((addr_list->count + 1) * sizeof(void *))) {
 		SAFE_FREE(addr_list->items);
 		SAFE_FREE(addr_list);
 		return ERANGE;
