@@ -3786,6 +3786,8 @@ static int nwrap_gethostbyname_r(const char *name,
 						 buf, buflen, result);
 		if (rc == 0) {
 			return 0;
+		} else if (rc == ERANGE) {
+			return ERANGE;
 		}
 	}
 	*h_errnop = h_errno;
@@ -3825,6 +3827,8 @@ static int nwrap_gethostbyname2_r(const char *name, int af,
 						 buf, buflen, result);
 		if (rc == 0) {
 			return 0;
+		} else if (rc == ERANGE) {
+			return ERANGE;
 		}
 	}
 	*h_errnop = h_errno;
