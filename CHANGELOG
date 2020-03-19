@@ -1,6 +1,10 @@
 ChangeLog
 ==========
 
+version 1.1.10 (released 2020-03-19)
+  * Fixed crash bug in OpenLDAP libraries with gethostbyname_r()
+  * Code cleanup in gethostbyname(2)(_r) functions
+
 version 1.1.9 (released 2020-03-16)
   * Fixed log spam when loading modules
 
