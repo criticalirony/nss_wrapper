@@ -3621,6 +3621,12 @@ static int nwrap_files_internal_gethostbyname(const char *name, int af,
 	bool he_found = false;
 	bool ok;
 
+	/*
+	 * We need to make sure we have zeroed return pointer for consumers
+	 * which don't check return values, e.g. OpenLDAP.
+	 */
+	ZERO_STRUCTP(result);
+
 	ok = nwrap_files_cache_reload(nwrap_he_global.cache);
 	if (!ok) {
 		NWRAP_LOG(NWRAP_LOG_ERROR, "error loading hosts file");
