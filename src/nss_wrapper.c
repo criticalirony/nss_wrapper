@@ -3727,6 +3727,13 @@ static int nwrap_files_gethostbyname2_r(struct nwrap_backend *b,
 	(void) b; /* unused */
 	(void) af; /* unused */
 
+	if (name == NULL || hedst == NULL || buf == NULL || buflen == 0) {
+		errno = EINVAL;
+		return -1;
+	}
+	*hedstp = NULL;
+	buf[0] = '\0';
+
 	addr_list = calloc(1, sizeof(struct nwrap_vector));
 	if (addr_list == NULL) {
 		NWRAP_LOG(NWRAP_LOG_ERROR,
