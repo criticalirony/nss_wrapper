@@ -247,6 +247,31 @@ static void test_nwrap_gethostbyname_r(void **state)
 
 	assert_string_equal(ip, "127.0.0.11");
 }
+
+static void test_nwrap_gethostbyname_r_null(void **state)
+{
+	char buf[2];
+	struct hostent hb, *he;
+	int herr = 0;
+	int rc;
+
+	(void) state; /* unused */
+
+	buf[0] = 'A';
+	buf[1] = '\0';
+
+	/* Check that the returned buffer is zeroed */
+	rc = gethostbyname_r("wurst",
+			     &hb,
+			     buf, sizeof(buf),
+			     &he,
+			     &herr);
+	assert_int_equal(rc, ENOENT);
+	assert_null(he);
+	assert_null(hb.h_name);
+	assert_null(hb.h_addr_list);
+	assert_string_equal(buf, "");
+}
 #endif
 
 #ifdef HAVE_GETHOSTBYADDR_R
@@ -293,6 +318,7 @@ int main(void) {
 		cmocka_unit_test(test_nwrap_gethostbyaddr),
 #ifdef HAVE_GETHOSTBYNAME_R
 		cmocka_unit_test(test_nwrap_gethostbyname_r),
+		cmocka_unit_test(test_nwrap_gethostbyname_r_null),
 #endif
 #ifdef HAVE_GETHOSTBYADDR_R
 		cmocka_unit_test(test_nwrap_gethostbyaddr_r),
