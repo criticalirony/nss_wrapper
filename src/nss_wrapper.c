@@ -3732,9 +3732,7 @@ static int nwrap_files_gethostbyname2_r(struct nwrap_backend *b,
 	rc = nwrap_files_internal_gethostbyname(name, AF_UNSPEC, hedst,
 						addr_list);
 	if (rc == -1) {
-		if (addr_list->items != NULL) {
-			free(addr_list->items);
-		}
+		SAFE_FREE(addr_list->items);
 		SAFE_FREE(addr_list);
 		errno = ENOENT;
 		return -1;
@@ -3751,8 +3749,8 @@ static int nwrap_files_gethostbyname2_r(struct nwrap_backend *b,
 	 * +1 is for ending NULL pointer. */
 	memcpy(buf, addr_list->items, (addr_list->count + 1) * sizeof(void *));
 
-	free(addr_list->items);
-	free(addr_list);
+	SAFE_FREE(addr_list->items);
+	SAFE_FREE(addr_list);
 
 	g.ptr = buf;
 	hedst->h_addr_list = g.list;
