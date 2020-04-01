@@ -185,6 +185,7 @@ typedef nss_status_t NSS_STATUS;
 	pthread_mutex_unlock(&( m ## _mutex)); \
 } while(0)
 
+static pthread_mutex_t libc_symbol_binding_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static bool nwrap_initialized = false;
 static pthread_mutex_t nwrap_initialized_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -201,6 +202,7 @@ static pthread_mutex_t nwrap_sp_global_mutex = PTHREAD_MUTEX_INITIALIZER;
  * nwrap_init() function.
  */
 # define NWRAP_LOCK_ALL do { \
+	NWRAP_LOCK(libc_symbol_binding); \
 	NWRAP_LOCK(nwrap_initialized); \
 	NWRAP_LOCK(nwrap_global); \
 	NWRAP_LOCK(nwrap_gr_global); \
@@ -216,6 +218,7 @@ static pthread_mutex_t nwrap_sp_global_mutex = PTHREAD_MUTEX_INITIALIZER;
 	NWRAP_UNLOCK(nwrap_gr_global); \
 	NWRAP_UNLOCK(nwrap_global); \
 	NWRAP_UNLOCK(nwrap_initialized); \
+	NWRAP_UNLOCK(libc_symbol_binding); \
 } while (0);
 
 static void nwrap_init(void);
