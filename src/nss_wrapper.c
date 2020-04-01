@@ -510,34 +510,85 @@ struct nwrap_libc_symbols {
 	NWRAP_SYMBOL_ENTRY(getnameinfo);
 	NWRAP_SYMBOL_ENTRY(gethostname);
 };
+#undef NWRAP_SYMBOL_ENTRY
 
-struct nwrap_module_nss_fns {
-	NSS_STATUS (*_nss_getpwnam_r)(const char *name, struct passwd *result, char *buffer,
-				      size_t buflen, int *errnop);
-	NSS_STATUS (*_nss_getpwuid_r)(uid_t uid, struct passwd *result, char *buffer,
-				      size_t buflen, int *errnop);
-	NSS_STATUS (*_nss_setpwent)(void);
-	NSS_STATUS (*_nss_getpwent_r)(struct passwd *result, char *buffer,
-				      size_t buflen, int *errnop);
-	NSS_STATUS (*_nss_endpwent)(void);
-	NSS_STATUS (*_nss_initgroups)(const char *user, gid_t group, long int *start,
-				      long int *size, gid_t **groups, long int limit, int *errnop);
-	NSS_STATUS (*_nss_getgrnam_r)(const char *name, struct group *result, char *buffer,
-				      size_t buflen, int *errnop);
-	NSS_STATUS (*_nss_getgrgid_r)(gid_t gid, struct group *result, char *buffer,
-				      size_t buflen, int *errnop);
-	NSS_STATUS (*_nss_setgrent)(void);
-	NSS_STATUS (*_nss_getgrent_r)(struct group *result, char *buffer,
-				      size_t buflen, int *errnop);
-	NSS_STATUS (*_nss_endgrent)(void);
-	NSS_STATUS (*_nss_gethostbyaddr_r)(const void *addr, socklen_t addrlen,
-					   int af, struct hostent *result,
-					   char *buffer, size_t buflen,
-					   int *errnop, int *h_errnop);
-	NSS_STATUS (*_nss_gethostbyname2_r)(const char *name, int af,
+typedef NSS_STATUS (*__nss_getpwnam_r)(const char *name,
+				       struct passwd *result,
+				       char *buffer,
+				       size_t buflen,
+				       int *errnop);
+typedef NSS_STATUS (*__nss_getpwuid_r)(uid_t uid,
+				       struct passwd *result,
+				       char *buffer,
+				       size_t buflen,
+				       int *errnop);
+typedef NSS_STATUS (*__nss_setpwent)(void);
+typedef NSS_STATUS (*__nss_getpwent_r)(struct passwd *result,
+				       char *buffer,
+				       size_t buflen,
+				       int *errnop);
+typedef NSS_STATUS (*__nss_endpwent)(void);
+typedef NSS_STATUS (*__nss_initgroups)(const char *user,
+				       gid_t group,
+				       long int *start,
+				       long int *size,
+				       gid_t **groups,
+				       long int limit,
+				       int *errnop);
+typedef NSS_STATUS (*__nss_getgrnam_r)(const char *name,
+				       struct group *result,
+				       char *buffer,
+				       size_t buflen,
+				       int *errnop);
+typedef NSS_STATUS (*__nss_getgrgid_r)(gid_t gid,
+				       struct group *result,
+				       char *buffer,
+				       size_t buflen,
+				       int *errnop);
+typedef NSS_STATUS (*__nss_setgrent)(void);
+typedef NSS_STATUS (*__nss_getgrent_r)(struct group *result,
+				       char *buffer,
+				       size_t buflen,
+				       int *errnop);
+typedef NSS_STATUS (*__nss_endgrent)(void);
+typedef NSS_STATUS (*__nss_gethostbyaddr_r)(const void *addr,
+					    socklen_t addrlen,
+					    int af,
 					    struct hostent *result,
-					    char *buffer, size_t buflen,
-					    int *errnop, int *h_errnop);
+					    char *buffer,
+					    size_t buflen,
+					    int *errnop,
+					    int *h_errnop);
+typedef NSS_STATUS (*__nss_gethostbyname2_r)(const char *name,
+					     int af,
+					     struct hostent *result,
+					     char *buffer,
+					     size_t buflen,
+					     int *errnop,
+					     int *h_errnop);
+
+#define NWRAP_NSS_MODULE_SYMBOL_ENTRY(i) \
+	union { \
+		__nss_##i f; \
+		void *obj; \
+	} _nss_##i
+
+struct nwrap_nss_module_symbols {
+	NWRAP_NSS_MODULE_SYMBOL_ENTRY(getpwnam_r);
+	NWRAP_NSS_MODULE_SYMBOL_ENTRY(getpwuid_r);
+	NWRAP_NSS_MODULE_SYMBOL_ENTRY(setpwent);
+	NWRAP_NSS_MODULE_SYMBOL_ENTRY(getpwent_r);
+	NWRAP_NSS_MODULE_SYMBOL_ENTRY(endpwent);
+
+	NWRAP_NSS_MODULE_SYMBOL_ENTRY(initgroups);
+	NWRAP_NSS_MODULE_SYMBOL_ENTRY(getgrnam_r);
+	NWRAP_NSS_MODULE_SYMBOL_ENTRY(getgrgid_r);
+	NWRAP_NSS_MODULE_SYMBOL_ENTRY(setgrent);
+	NWRAP_NSS_MODULE_SYMBOL_ENTRY(getgrent_r);
+	NWRAP_NSS_MODULE_SYMBOL_ENTRY(endgrent);
+
+	NWRAP_NSS_MODULE_SYMBOL_ENTRY(gethostbyaddr_r);
+	NWRAP_NSS_MODULE_SYMBOL_ENTRY(gethostbyname2_r);
 };
 
 struct nwrap_backend {
@@ -545,7 +596,7 @@ struct nwrap_backend {
 	const char *so_path;
 	void *so_handle;
 	struct nwrap_ops *ops;
-	struct nwrap_module_nss_fns *fns;
+	struct nwrap_nss_module_symbols *symbols;
 };
 
 struct nwrap_vector;
@@ -1645,8 +1696,8 @@ static int libc_getnameinfo(const struct sockaddr *sa,
  * NWRAP NSS MODULE LOADER FUNCTIONS
  *********************************************************/
 
-static void *nwrap_load_module_fn(struct nwrap_backend *b,
-                                 const char *fn_name)
+static void *_nwrap_bind_nss_module_symbol(struct nwrap_backend *b,
+					   const char *fn_name)
 {
 	void *res = NULL;
 	char *s = NULL;
@@ -1673,47 +1724,51 @@ static void *nwrap_load_module_fn(struct nwrap_backend *b,
 	return res;
 }
 
-static struct nwrap_module_nss_fns *nwrap_load_module_fns(struct nwrap_backend *b)
+#define nwrap_nss_module_bind_symbol(sym_name) \
+	NWRAP_LOCK(nss_module_symbol_binding); \
+	if (symbols->_nss_##sym_name.obj == NULL) { \
+		symbols->_nss_##sym_name.obj = \
+			_nwrap_bind_nss_module_symbol(b, #sym_name); \
+	} \
+	NWRAP_UNLOCK(nss_module_symbol_binding)
+
+#define nwrap_nss_module_bind_symbol2(sym_name, alt_name) \
+	NWRAP_LOCK(nss_module_symbol_binding); \
+	if (symbols->_nss_##sym_name.obj == NULL) { \
+		symbols->_nss_##sym_name.obj = \
+			_nwrap_bind_nss_module_symbol(b, #alt_name); \
+	} \
+	NWRAP_UNLOCK(nss_module_symbol_binding)
+
+static struct nwrap_nss_module_symbols *
+nwrap_bind_nss_module_symbols(struct nwrap_backend *b)
 {
-	struct nwrap_module_nss_fns *fns;
+	struct nwrap_nss_module_symbols *symbols;
 
 	if (!b->so_handle) {
 		return NULL;
 	}
 
-	fns = (struct nwrap_module_nss_fns *)malloc(sizeof(struct nwrap_module_nss_fns));
-	if (!fns) {
+	symbols = calloc(1, sizeof(struct nwrap_nss_module_symbols));
+	if (symbols == NULL) {
 		return NULL;
 	}
 
-	*(void **)(&fns->_nss_getpwnam_r) =
-		nwrap_load_module_fn(b, "getpwnam_r");
-	*(void **)(&fns->_nss_getpwuid_r) =
-		nwrap_load_module_fn(b, "getpwuid_r");
-	*(void **)(&fns->_nss_setpwent) =
-		nwrap_load_module_fn(b, "setpwent");
-	*(void **)(&fns->_nss_getpwent_r) =
-		nwrap_load_module_fn(b, "getpwent_r");
-	*(void **)(&fns->_nss_endpwent) =
-		nwrap_load_module_fn(b, "endpwent");
-	*(void **)(&fns->_nss_initgroups) =
-		nwrap_load_module_fn(b, "initgroups_dyn");
-	*(void **)(&fns->_nss_getgrnam_r) =
-		nwrap_load_module_fn(b, "getgrnam_r");
-	*(void **)(&fns->_nss_getgrgid_r)=
-		nwrap_load_module_fn(b, "getgrgid_r");
-	*(void **)(&fns->_nss_setgrent) =
-		nwrap_load_module_fn(b, "setgrent");
-	*(void **)(&fns->_nss_getgrent_r) =
-		nwrap_load_module_fn(b, "getgrent_r");
-	*(void **)(&fns->_nss_endgrent) =
-		nwrap_load_module_fn(b, "endgrent");
-	*(void **)(&fns->_nss_gethostbyaddr_r) =
-		nwrap_load_module_fn(b, "gethostbyaddr_r");
-	*(void **)(&fns->_nss_gethostbyname2_r) =
-		nwrap_load_module_fn(b, "gethostbyname2_r");
+	nwrap_nss_module_bind_symbol(getpwnam_r);
+	nwrap_nss_module_bind_symbol(getpwuid_r);
+	nwrap_nss_module_bind_symbol(setpwent);
+	nwrap_nss_module_bind_symbol(getpwent_r);
+	nwrap_nss_module_bind_symbol(endpwent);
+	nwrap_nss_module_bind_symbol2(initgroups, initgroups_dyn);
+	nwrap_nss_module_bind_symbol(getgrnam_r);
+	nwrap_nss_module_bind_symbol(getgrgid_r);
+	nwrap_nss_module_bind_symbol(setgrent);
+	nwrap_nss_module_bind_symbol(getgrent_r);
+	nwrap_nss_module_bind_symbol(endgrent);
+	nwrap_nss_module_bind_symbol(gethostbyaddr_r);
+	nwrap_nss_module_bind_symbol(gethostbyname2_r);
 
-	return fns;
+	return symbols;
 }
 
 static void *nwrap_load_module(const char *so_path)
@@ -1758,13 +1813,13 @@ static bool nwrap_module_init(const char *name,
 
 	if (so_path != NULL) {
 		b->so_handle = nwrap_load_module(so_path);
-		b->fns = nwrap_load_module_fns(b);
-		if (b->fns == NULL) {
+		b->symbols = nwrap_bind_nss_module_symbols(b);
+		if (b->symbols == NULL) {
 			return false;
 		}
 	} else {
 		b->so_handle = NULL;
-		b->fns = NULL;
+		b->symbols = NULL;
 	}
 
 	(*num_backends)++;
@@ -4227,11 +4282,15 @@ static struct passwd *nwrap_module_getpwnam(struct nwrap_backend *b,
 	static char buf[1000];
 	NSS_STATUS status;
 
-	if (!b->fns->_nss_getpwnam_r) {
+	if (b->symbols->_nss_getpwnam_r.f == NULL) {
 		return NULL;
 	}
 
-	status = b->fns->_nss_getpwnam_r(name, &pwd, buf, sizeof(buf), &errno);
+	status = b->symbols->_nss_getpwnam_r.f(name,
+					       &pwd,
+					       buf,
+					       sizeof(buf),
+					       &errno);
 	if (status == NSS_STATUS_NOTFOUND) {
 		return NULL;
 	}
@@ -4250,11 +4309,11 @@ static int nwrap_module_getpwnam_r(struct nwrap_backend *b,
 
 	*pwdstp = NULL;
 
-	if (!b->fns->_nss_getpwnam_r) {
+	if (b->symbols->_nss_getpwnam_r.f == NULL) {
 		return NSS_STATUS_NOTFOUND;
 	}
 
-	ret = b->fns->_nss_getpwnam_r(name, pwdst, buf, buflen, &errno);
+	ret = b->symbols->_nss_getpwnam_r.f(name, pwdst, buf, buflen, &errno);
 	switch (ret) {
 	case NSS_STATUS_SUCCESS:
 		*pwdstp = pwdst;
@@ -4284,11 +4343,15 @@ static struct passwd *nwrap_module_getpwuid(struct nwrap_backend *b,
 	static char buf[1000];
 	NSS_STATUS status;
 
-	if (!b->fns->_nss_getpwuid_r) {
+	if (b->symbols->_nss_getpwuid_r.f == NULL) {
 		return NULL;
 	}
 
-	status = b->fns->_nss_getpwuid_r(uid, &pwd, buf, sizeof(buf), &errno);
+	status = b->symbols->_nss_getpwuid_r.f(uid,
+					       &pwd,
+					       buf,
+					       sizeof(buf),
+					       &errno);
 	if (status == NSS_STATUS_NOTFOUND) {
 		return NULL;
 	}
@@ -4306,11 +4369,11 @@ static int nwrap_module_getpwuid_r(struct nwrap_backend *b,
 
 	*pwdstp = NULL;
 
-	if (!b->fns->_nss_getpwuid_r) {
+	if (b->symbols->_nss_getpwuid_r.f == NULL) {
 		return ENOENT;
 	}
 
-	ret = b->fns->_nss_getpwuid_r(uid, pwdst, buf, buflen, &errno);
+	ret = b->symbols->_nss_getpwuid_r.f(uid, pwdst, buf, buflen, &errno);
 	switch (ret) {
 	case NSS_STATUS_SUCCESS:
 		*pwdstp = pwdst;
@@ -4335,11 +4398,11 @@ static int nwrap_module_getpwuid_r(struct nwrap_backend *b,
 
 static void nwrap_module_setpwent(struct nwrap_backend *b)
 {
-	if (!b->fns->_nss_setpwent) {
+	if (b->symbols->_nss_setpwent.f == NULL) {
 		return;
 	}
 
-	b->fns->_nss_setpwent();
+	b->symbols->_nss_setpwent.f();
 }
 
 static struct passwd *nwrap_module_getpwent(struct nwrap_backend *b)
@@ -4348,11 +4411,11 @@ static struct passwd *nwrap_module_getpwent(struct nwrap_backend *b)
 	static char buf[1000];
 	NSS_STATUS status;
 
-	if (!b->fns->_nss_getpwent_r) {
+	if (b->symbols->_nss_getpwent_r.f == NULL) {
 		return NULL;
 	}
 
-	status = b->fns->_nss_getpwent_r(&pwd, buf, sizeof(buf), &errno);
+	status = b->symbols->_nss_getpwent_r.f(&pwd, buf, sizeof(buf), &errno);
 	if (status == NSS_STATUS_NOTFOUND) {
 		return NULL;
 	}
@@ -4370,11 +4433,11 @@ static int nwrap_module_getpwent_r(struct nwrap_backend *b,
 
 	*pwdstp = NULL;
 
-	if (!b->fns->_nss_getpwent_r) {
+	if (b->symbols->_nss_getpwent_r.f == NULL) {
 		return ENOENT;
 	}
 
-	ret = b->fns->_nss_getpwent_r(pwdst, buf, buflen, &errno);
+	ret = b->symbols->_nss_getpwent_r.f(pwdst, buf, buflen, &errno);
 	switch (ret) {
 	case NSS_STATUS_SUCCESS:
 		*pwdstp = pwdst;
@@ -4399,11 +4462,11 @@ static int nwrap_module_getpwent_r(struct nwrap_backend *b,
 
 static void nwrap_module_endpwent(struct nwrap_backend *b)
 {
-	if (!b->fns->_nss_endpwent) {
+	if (b->symbols->_nss_endpwent.f) {
 		return;
 	}
 
-	b->fns->_nss_endpwent();
+	b->symbols->_nss_endpwent.f();
 }
 
 static int nwrap_module_initgroups(struct nwrap_backend *b,
@@ -4413,11 +4476,17 @@ static int nwrap_module_initgroups(struct nwrap_backend *b,
 	long int start;
 	long int size;
 
-	if (!b->fns->_nss_initgroups) {
+	if (b->symbols->_nss_initgroups.f == NULL) {
 		return NSS_STATUS_UNAVAIL;
 	}
 
-	return b->fns->_nss_initgroups(user, group, &start, &size, &groups, 0, &errno);
+	return b->symbols->_nss_initgroups.f(user,
+					     group,
+					     &start,
+					     &size,
+					     &groups,
+					     0,
+					     &errno);
 }
 
 static struct group *nwrap_module_getgrnam(struct nwrap_backend *b,
@@ -4428,7 +4497,7 @@ static struct group *nwrap_module_getgrnam(struct nwrap_backend *b,
 	static int buflen = 1000;
 	NSS_STATUS status;
 
-	if (!b->fns->_nss_getgrnam_r) {
+	if (b->symbols->_nss_getgrnam_r.f == NULL) {
 		return NULL;
 	}
 
@@ -4436,7 +4505,7 @@ static struct group *nwrap_module_getgrnam(struct nwrap_backend *b,
 		buf = (char *)malloc(buflen);
 	}
 again:
-	status = b->fns->_nss_getgrnam_r(name, &grp, buf, buflen, &errno);
+	status = b->symbols->_nss_getgrnam_r.f(name, &grp, buf, buflen, &errno);
 	if (status == NSS_STATUS_TRYAGAIN) {
 		buflen *= 2;
 		buf = (char *)realloc(buf, buflen);
@@ -4464,11 +4533,11 @@ static int nwrap_module_getgrnam_r(struct nwrap_backend *b,
 
 	*grdstp = NULL;
 
-	if (!b->fns->_nss_getgrnam_r) {
+	if (b->symbols->_nss_getgrnam_r.f == NULL) {
 		return ENOENT;
 	}
 
-	ret = b->fns->_nss_getgrnam_r(name, grdst, buf, buflen, &errno);
+	ret = b->symbols->_nss_getgrnam_r.f(name, grdst, buf, buflen, &errno);
 	switch (ret) {
 	case NSS_STATUS_SUCCESS:
 		*grdstp = grdst;
@@ -4499,7 +4568,7 @@ static struct group *nwrap_module_getgrgid(struct nwrap_backend *b,
 	static int buflen = 1000;
 	NSS_STATUS status;
 
-	if (!b->fns->_nss_getgrgid_r) {
+	if (b->symbols->_nss_getgrgid_r.f == NULL) {
 		return NULL;
 	}
 
@@ -4508,7 +4577,7 @@ static struct group *nwrap_module_getgrgid(struct nwrap_backend *b,
 	}
 
 again:
-	status = b->fns->_nss_getgrgid_r(gid, &grp, buf, buflen, &errno);
+	status = b->symbols->_nss_getgrgid_r.f(gid, &grp, buf, buflen, &errno);
 	if (status == NSS_STATUS_TRYAGAIN) {
 		buflen *= 2;
 		buf = (char *)realloc(buf, buflen);
@@ -4536,11 +4605,11 @@ static int nwrap_module_getgrgid_r(struct nwrap_backend *b,
 
 	*grdstp = NULL;
 
-	if (!b->fns->_nss_getgrgid_r) {
+	if (b->symbols->_nss_getgrgid_r.f == NULL) {
 		return ENOENT;
 	}
 
-	ret = b->fns->_nss_getgrgid_r(gid, grdst, buf, buflen, &errno);
+	ret = b->symbols->_nss_getgrgid_r.f(gid, grdst, buf, buflen, &errno);
 	switch (ret) {
 	case NSS_STATUS_SUCCESS:
 		*grdstp = grdst;
@@ -4565,11 +4634,11 @@ static int nwrap_module_getgrgid_r(struct nwrap_backend *b,
 
 static void nwrap_module_setgrent(struct nwrap_backend *b)
 {
-	if (!b->fns->_nss_setgrent) {
+	if (b->symbols->_nss_setgrent.f) {
 		return;
 	}
 
-	b->fns->_nss_setgrent();
+	b->symbols->_nss_setgrent.f();
 }
 
 static struct group *nwrap_module_getgrent(struct nwrap_backend *b)
@@ -4579,7 +4648,7 @@ static struct group *nwrap_module_getgrent(struct nwrap_backend *b)
 	static int buflen = 1024;
 	NSS_STATUS status;
 
-	if (!b->fns->_nss_getgrent_r) {
+	if (b->symbols->_nss_getgrent_r.f == NULL) {
 		return NULL;
 	}
 
@@ -4588,7 +4657,7 @@ static struct group *nwrap_module_getgrent(struct nwrap_backend *b)
 	}
 
 again:
-	status = b->fns->_nss_getgrent_r(&grp, buf, buflen, &errno);
+	status = b->symbols->_nss_getgrent_r.f(&grp, buf, buflen, &errno);
 	if (status == NSS_STATUS_TRYAGAIN) {
 		buflen *= 2;
 		buf = (char *)realloc(buf, buflen);
@@ -4616,11 +4685,11 @@ static int nwrap_module_getgrent_r(struct nwrap_backend *b,
 
 	*grdstp = NULL;
 
-	if (!b->fns->_nss_getgrent_r) {
+	if (b->symbols->_nss_getgrent_r.f == NULL) {
 		return ENOENT;
 	}
 
-	ret = b->fns->_nss_getgrent_r(grdst, buf, buflen, &errno);
+	ret = b->symbols->_nss_getgrent_r.f(grdst, buf, buflen, &errno);
 	switch (ret) {
 	case NSS_STATUS_SUCCESS:
 		*grdstp = grdst;
@@ -4645,11 +4714,11 @@ static int nwrap_module_getgrent_r(struct nwrap_backend *b,
 
 static void nwrap_module_endgrent(struct nwrap_backend *b)
 {
-	if (!b->fns->_nss_endgrent) {
+	if (b->symbols->_nss_endgrent.f == NULL) {
 		return;
 	}
 
-	b->fns->_nss_endgrent();
+	b->symbols->_nss_endgrent.f();
 }
 
 static struct hostent *nwrap_module_gethostbyaddr(struct nwrap_backend *b,
@@ -4661,7 +4730,7 @@ static struct hostent *nwrap_module_gethostbyaddr(struct nwrap_backend *b,
 	static size_t buflen = 1000;
 	NSS_STATUS status;
 
-	if (b->fns->_nss_gethostbyaddr_r == NULL) {
+	if (b->symbols->_nss_gethostbyaddr_r.f == NULL) {
 		return NULL;
 	}
 
@@ -4672,8 +4741,14 @@ static struct hostent *nwrap_module_gethostbyaddr(struct nwrap_backend *b,
 		}
 	}
 again:
-	status = b->fns->_nss_gethostbyaddr_r(addr, len, type, &he,
-					      buf, buflen, &errno, &h_errno);
+	status = b->symbols->_nss_gethostbyaddr_r.f(addr,
+						    len,
+						    type,
+						    &he,
+						    buf,
+						    buflen,
+						    &errno,
+						    &h_errno);
 	if (status == NSS_STATUS_TRYAGAIN) {
 		char *p = NULL;
 
@@ -4708,12 +4783,17 @@ static int nwrap_module_gethostbyname2_r(struct nwrap_backend *b,
 
 	*hedstp = NULL;
 
-	if (b->fns->_nss_gethostbyname2_r == NULL) {
+	if (b->symbols->_nss_gethostbyname2_r.f == NULL) {
 		return ENOENT;
 	}
 
-	status = b->fns->_nss_gethostbyname2_r(name, af, hedst,
-					       buf, buflen, &errno, &h_errno);
+	status = b->symbols->_nss_gethostbyname2_r.f(name,
+						     af,
+						     hedst,
+						     buf,
+						     buflen,
+						     &errno,
+						     &h_errno);
 	switch (status) {
 	case NSS_STATUS_SUCCESS:
 		*hedstp = hedst;
@@ -4744,7 +4824,7 @@ static struct hostent *nwrap_module_gethostbyname(struct nwrap_backend *b,
 	static size_t buflen = 1000;
 	NSS_STATUS status;
 
-	if (b->fns->_nss_gethostbyname2_r == NULL) {
+	if (b->symbols->_nss_gethostbyname2_r.f == NULL) {
 		return NULL;
 	}
 
@@ -4756,8 +4836,13 @@ static struct hostent *nwrap_module_gethostbyname(struct nwrap_backend *b,
 	}
 
 again:
-	status = b->fns->_nss_gethostbyname2_r(name, AF_UNSPEC, &he,
-					       buf, buflen, &errno, &h_errno);
+	status = b->symbols->_nss_gethostbyname2_r.f(name,
+						     AF_UNSPEC,
+						     &he,
+						     buf,
+						     buflen,
+						     &errno,
+						     &h_errno);
 	if (status == NSS_STATUS_TRYAGAIN) {
 		char *p = NULL;
 
@@ -4790,7 +4875,7 @@ static struct hostent *nwrap_module_gethostbyname2(struct nwrap_backend *b,
 	static size_t buflen = 1000;
 	NSS_STATUS status;
 
-	if (b->fns->_nss_gethostbyname2_r == NULL) {
+	if (b->symbols->_nss_gethostbyname2_r.f == NULL) {
 		return NULL;
 	}
 
@@ -4802,8 +4887,13 @@ static struct hostent *nwrap_module_gethostbyname2(struct nwrap_backend *b,
 	}
 
 again:
-	status = b->fns->_nss_gethostbyname2_r(name, af, &he,
-					       buf, buflen, &errno, &h_errno);
+	status = b->symbols->_nss_gethostbyname2_r.f(name,
+						     af,
+						     &he,
+						     buf,
+						     buflen,
+						     &errno,
+						     &h_errno);
 	if (status == NSS_STATUS_TRYAGAIN) {
 		char *p = NULL;
 
@@ -6293,7 +6383,7 @@ void nwrap_destructor(void)
 				if (b->so_handle != NULL) {
 					dlclose(b->so_handle);
 				}
-				SAFE_FREE(b->fns);
+				SAFE_FREE(b->symbols);
 			}
 			SAFE_FREE(m->backends);
 		}
