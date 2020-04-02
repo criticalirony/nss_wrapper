@@ -1,6 +1,9 @@
 ChangeLog
 ==========
 
+version 1.1.11 (released 2020-04-02)
+  * Fixed strict aliasing issues on armv7hl (32bit)
+
 version 1.1.10 (released 2020-03-19)
   * Fixed crash bug in OpenLDAP libraries with gethostbyname_r()
   * Code cleanup in gethostbyname(2)(_r) functions
