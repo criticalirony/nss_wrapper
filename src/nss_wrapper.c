@@ -1807,9 +1807,11 @@ static bool nwrap_module_init(const char *name,
 
 	b = &((*backends)[*num_backends]);
 
-	b->name = name;
-	b->ops = ops;
-	b->so_path = so_path;
+	*b = (struct nwrap_backend) {
+		.name = name,
+		.ops = ops,
+		.so_path = so_path,
+	};
 
 	if (so_path != NULL) {
 		b->so_handle = nwrap_load_module(so_path);
@@ -1817,9 +1819,6 @@ static bool nwrap_module_init(const char *name,
 		if (b->symbols == NULL) {
 			return false;
 		}
-	} else {
-		b->so_handle = NULL;
-		b->symbols = NULL;
 	}
 
 	(*num_backends)++;
