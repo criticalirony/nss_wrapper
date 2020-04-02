@@ -1796,14 +1796,15 @@ static bool nwrap_module_init(const char *name,
 			      size_t *num_backends,
 			      struct nwrap_backend **backends)
 {
-	struct nwrap_backend *b;
+	struct nwrap_backend *b = NULL;
+	size_t n = *num_backends + 1;
 
-	*backends = (struct nwrap_backend *)realloc(*backends,
-		sizeof(struct nwrap_backend) * ((*num_backends) + 1));
-	if (!*backends) {
+	b = realloc(*backends, sizeof(struct nwrap_backend) * n);
+	if (b == NULL) {
 		NWRAP_LOG(NWRAP_LOG_ERROR, "Out of memory");
 		return false;
 	}
+	*backends = b;
 
 	b = &((*backends)[*num_backends]);
 
@@ -1821,7 +1822,7 @@ static bool nwrap_module_init(const char *name,
 		}
 	}
 
-	(*num_backends)++;
+	*num_backends = n;
 
 	return true;
 }
