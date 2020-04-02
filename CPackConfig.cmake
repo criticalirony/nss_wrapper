@@ -14,7 +14,7 @@ set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 
 ### source generator
 set(CPACK_SOURCE_GENERATOR "TGZ")
-set(CPACK_SOURCE_IGNORE_FILES "~$;[.]swp$;/[.]svn/;/[.]git/;.gitignore;/build*;/obj*;tags;cscope.*")
+set(CPACK_SOURCE_IGNORE_FILES "~$;[.]swp$;/[.]svn/;/[.]git/;.gitignore;/build*;/obj*;tags;cscope.*;compile_commands.json")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
 
 if (WIN32)
