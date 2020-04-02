@@ -4,7 +4,7 @@
 *.swp
 *~$
 build
-obj
+obj*/
 cscope.*
 tags
 compile_commands.json
