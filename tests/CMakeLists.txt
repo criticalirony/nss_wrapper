@@ -25,7 +25,8 @@ set(NWRAP_TESTS
     test_getaddrinfo
     test_getnameinfo
     test_gethostby_name_addr
-    test_gethostent)
+    test_gethostent
+    test_getpwuid_module)
 
 if (HAVE_SHADOW_H)
     list(APPEND NWRAP_TESTS test_shadow)
