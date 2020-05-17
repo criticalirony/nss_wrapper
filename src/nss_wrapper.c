@@ -4070,6 +4070,10 @@ static int nwrap_files_getaddrinfo(const char *name,
 	}
 
 	name_len = strlen(name);
+	if (name_len == 0) {
+		return EAI_NONAME;
+	}
+
 	if (name_len < sizeof(canon_name) && name[name_len - 1] == '.') {
 		memcpy(canon_name, name, name_len - 1);
 		canon_name[name_len] = '\0';
