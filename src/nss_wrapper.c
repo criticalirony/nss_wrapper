@@ -2129,7 +2129,20 @@ reopen:
 	}
 
 	ret = fstat(nwrap->fd, &st);
-	if (ret != 0) {
+	if (ret != 0 && errno == EBADF && retried == false) {
+		/* maybe something closed the fd on our behalf */
+		NWRAP_LOG(NWRAP_LOG_TRACE,
+			  "fstat(%s) - %d:%s - reopen",
+			  nwrap->path,
+			  ret,
+			  strerror(errno));
+		retried = true;
+		memset(&nwrap->st, 0, sizeof(nwrap->st));
+		nwrap->fp = NULL;
+		nwrap->fd = -1;
+		goto reopen;
+	}
+	else if (ret != 0) {
 		NWRAP_LOG(NWRAP_LOG_ERROR,
 			  "fstat(%s) - %d:%s",
 			  nwrap->path,
