@@ -2138,6 +2138,7 @@ reopen:
 			  strerror(errno));
 		retried = true;
 		memset(&nwrap->st, 0, sizeof(nwrap->st));
+		fclose(nwrap->fp);
 		nwrap->fp = NULL;
 		nwrap->fd = -1;
 		goto reopen;
