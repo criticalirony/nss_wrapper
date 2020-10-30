@@ -263,6 +263,32 @@ int main(void) {
     return 0;
 }" HAVE_DESTRUCTOR_ATTRIBUTE)
 
+check_c_source_compiles("
+#pragma init (test_constructor)
+void test_constructor(void);
+
+void test_constructor(void)
+{
+     return;
+}
+
+int main(void) {
+     return 0;
+}" HAVE_PRAGMA_INIT)
+
+check_c_source_compiles("
+#pragma fini (test_destructor)
+void test_destructor(void);
+
+void test_destructor(void)
+{
+    return;
+}
+
+int main(void) {
+    return 0;
+}" HAVE_PRAGMA_FINI)
+
 find_library(DLFCN_LIBRARY dl)
 if (DLFCN_LIBRARY)
     list(APPEND _REQUIRED_LIBRARIES ${DLFCN_LIBRARY})

@@ -104,6 +104,8 @@
 #cmakedefine HAVE_ATTRIBUTE_PRINTF_FORMAT 1
 #cmakedefine HAVE_CONSTRUCTOR_ATTRIBUTE 1
 #cmakedefine HAVE_DESTRUCTOR_ATTRIBUTE 1
+#cmakedefine HAVE_PRAGMA_INIT 1
+#cmakedefine HAVE_PRAGMA_FINI 1
 
 /*************************** ENDIAN *****************************/
 
