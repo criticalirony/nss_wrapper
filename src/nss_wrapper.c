@@ -1070,7 +1070,14 @@ static struct nwrap_he nwrap_he_global;
 
 static bool nwrap_gr_parse_line(struct nwrap_cache *nwrap, char *line);
 static void nwrap_gr_unload(struct nwrap_cache *nwrap);
+#if ! defined(HAVE_CONSTRUCTOR_ATTRIBUTE) && defined(HAVE_PRAGMA_INIT)
+/* xlC and other oldschool compilers support (only) this */
+#pragma init (nwrap_constructor)
+#endif
 void nwrap_constructor(void) CONSTRUCTOR_ATTRIBUTE;
+#if ! defined(HAVE_DESTRUCTOR_ATTRIBUTE) && defined(HAVE_PRAGMA_FINI)
+#pragma fini (nwrap_destructor)
+#endif
 void nwrap_destructor(void) DESTRUCTOR_ATTRIBUTE;
 
 /*********************************************************
